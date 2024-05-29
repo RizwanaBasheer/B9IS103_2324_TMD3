@@ -1,12 +1,16 @@
 # B9IS103_2324_TMD3
+# Topic: Secure Communications and collaboration Design,Programming and analysis.(Chat Application)
 
- Topic: Secure Communications and collaboration Design,Programming and analysis.(Chat Application)
+ [Link for Google Docs](https://docs.google.com/document/d/1cGaIiWyDcL1yrtYu_2z-NQ1amFtkb8YRZ_OrkCXNO-Q/edit?usp=sharing)
  
- Team Members: 
+ ## Team Members: 
 
- Himanshu Jasraj Anand - (20020118)        
- Rizwana Basheer Basha - (20031946)
- Ranjithkumar Mathiazhagan-(20029745)
+ 1. Himanshu Jasraj Anand - (20020118)        
+ 2. Rizwana Basheer Basha - (20031946)
+ 3. Ranjithkumar Mathiazhagan-(20029745)
 
-Reference :
- 
+## Reference Links :
+
+[Blog Guide for Creating a chat App]( https://getstream.io/blog/build-chat-messaging-app/)
+[ChatApp & End-to-end Encryption Article](https://www.qed42.com/insights/developing-a-real-time-secure-chat-application-like-whatsapp-signal-with-end-to-end-encryption#top)
+[Blog for Security Algorithm](https://dev.to/alexsam986/secure-instant-messaging-platform-the-importance-of-security-algorithm-in-chat-apps-53ip)
