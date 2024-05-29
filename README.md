@@ -11,6 +11,6 @@
 
 ## Reference Links :
 
-[Blog Guide for Creating a chat App]( https://getstream.io/blog/build-chat-messaging-app/)
-[ChatApp & End-to-end Encryption Article](https://www.qed42.com/insights/developing-a-real-time-secure-chat-application-like-whatsapp-signal-with-end-to-end-encryption#top)
-[Blog for Security Algorithm](https://dev.to/alexsam986/secure-instant-messaging-platform-the-importance-of-security-algorithm-in-chat-apps-53ip)
+1. [Blog Guide for Creating a chat App]( https://getstream.io/blog/build-chat-messaging-app/)
+2. [ChatApp & End-to-end Encryption Article](https://www.qed42.com/insights/developing-a-real-time-secure-chat-application-like-whatsapp-signal-with-end-to-end-encryption#top)
+3. [Blog for Security Algorithm](https://dev.to/alexsam986/secure-instant-messaging-platform-the-importance-of-security-algorithm-in-chat-apps-53ip)
