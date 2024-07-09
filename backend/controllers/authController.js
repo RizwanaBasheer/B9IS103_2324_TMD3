@@ -1,6 +1,6 @@
 // controllers/authController.js
 const jwt = require('jsonwebtoken');
-const User = require('../User');
+const User = require('../models/User');
 
 exports.googleAuth = passport.authenticate('google', { scope: ['profile', 'email'] });
 
