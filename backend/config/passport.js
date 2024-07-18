@@ -29,11 +29,38 @@ passport.use(new GoogleStrategy({
                 email: profile.emails[0].value
             });
             await user.save();
+
+            // Generate a new RSA key pair
+            const { publicKey, privateKey } = generateKeyPairSync('rsa', {
+                modulusLength: 2048,
+            });
+
+            // Convert keys to PEM format
+            const publicKeyPEM = publicKey.export({
+                type: 'pkcs1',
+                format: 'pem',
+            }).toString();
+
+            const privateKeyPEM = privateKey.export({
+                type: 'pkcs1',
+                format: 'pem',
+            }).toString();
+
+            // Encrypt keys before saving to the database
+            const encryptedUserId = encrypt(user._id.toString());
+            const encryptedPublicKey = encrypt(publicKeyPEM);
+            const encryptedPrivateKey = encrypt(privateKeyPEM);
+
+            // Save keys in respective models
+            const publicKeyDoc = new PublicKey({ userId: encryptedUserId, publicKey: encryptedPublicKey });
+            const privateKeyDoc = new PrivateKey({ userId: encryptedUserId, privateKey: encryptedPrivateKey });
+
+            await publicKeyDoc.save();
+            await privateKeyDoc.save();
         }
         done(null, user);
     } catch (err) {
         done(err, null);
     }
 }));
-
 module.exports = passport;
