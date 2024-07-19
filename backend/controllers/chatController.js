@@ -65,15 +65,11 @@ exports.getMessages = async (req, res) => {
       // Decrypt keys
       const PrivateKeyPEM = decrypt(PrivateKeyDoc.privateKey);
 
-      console.log(recipient);
-
       // Fetch all messages for the recipient from the database
       const messages = await Message.find({ receiver: recipientId });
       if (!messages.length) {
         return res.status(404).json({ error: 'No messages found' });
       }
-
-      console.log(messages);
 
       // Decrypt each message content
       const decryptedMessages = messages.map(message => ({
