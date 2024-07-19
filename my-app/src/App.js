@@ -12,7 +12,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/chat" element={<ChatApp />} />
         </Routes>
-      </Container>
+      </Container> 
     </Router>
   );
 }
