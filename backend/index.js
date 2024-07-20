@@ -6,6 +6,7 @@ require('dotenv').config();
 require('./utils/encryption'); // Initialize encryption
 require('./utils/jwt'); // Initialize JWT
 require('./config/passport'); // Google Auth
+require('./sockets/chatSocket'); // Initialize socket
 
 const app = express();
 
