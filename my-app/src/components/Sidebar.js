@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import randomColor from 'randomcolor';
 
 const contacts = [
   { id: 1, name: 'John Doe', avatar: 'https://via.placeholder.com/40' },
@@ -12,6 +13,8 @@ function Sidebar({ onSelectContact, showSidebar }) {
   const filteredContacts = contacts.filter(contact =>
     contact.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const getRandomColor = () => randomColor({ luminosity: 'light', format: 'hex' });
 
   return (
     <div className={`sidebar bg-light border-end ${showSidebar ? 'd-block' : 'd-none'} d-md-block`} style={{ width: '250px', height: '100vh', overflowY: 'auto' }}>
@@ -27,12 +30,15 @@ function Sidebar({ onSelectContact, showSidebar }) {
       <ul className="list-group">
         {filteredContacts.map((contact) => (
           <li 
-            className="list-group-item d-flex align-items-center" 
+            className={`list-group-item d-flex align-items-center ${selectedContact && selectedContact.id === contact.id ? 'active' : ''}`}
             key={contact.id}
             onClick={() => onSelectContact(contact)}
-            style={{ cursor: 'pointer' }}
           >
-            <img src={contact.avatar} alt={contact.name} className="rounded-circle me-2" style={{ width: '40px', height: '40px' }} />
+            <div className="avatar me-2" style={{ backgroundColor: getRandomColor(), width: '40px', height: '40px', borderRadius: '50%' }}>
+              <span className="text-white d-flex justify-content-center align-items-center" style={{ width: '100%', height: '100%', fontSize: '1.2rem' }}>
+                {contact.name[0]}
+              </span>
+            </div>
             <span>{contact.name}</span>
           </li>
         ))}
