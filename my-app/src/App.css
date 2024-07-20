@@ -1,38 +1,49 @@
-.App {
-  text-align: center;
+
+/* Hover and active states for bottom navigation icons */
+.bottom-nav .btn-link {
+  color: #6c757d;
+  transition: color 0.3s;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.bottom-nav .btn-link:hover {
+  color: #007bff;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.bottom-nav .btn-link.active {
+  color: #007bff;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+/* Hover and active states for contact list items */
+.sidebar .list-group-item {
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.sidebar .list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+.sidebar .list-group-item.active {
+  background-color: #007bff;
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.sidebar .list-group-item.active img {
+  border-color: white;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Theme colors */
+.chat-header {
+  background-color: #007bff;
+  color: white;
 }
+
+.chat-input {
+  background-color: #f8f9fa;
+}
+
+.chat-messages .bg-primary {
+  background-color: #007bff !important;
+  color: white !important;
+}
+

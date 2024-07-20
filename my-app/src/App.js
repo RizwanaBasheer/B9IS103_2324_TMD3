@@ -1,18 +1,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { Container } from '@mui/material';
-import Home from './components/Home';
+import Home from './components/home';
 import ChatApp from './components/ChatApp';
+import './App.css'
 
 function App() {
   return (
     <Router>
-      <Container fluid>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/chat" element={<ChatApp />} />
         </Routes>
-      </Container> 
     </Router>
   );
 }
