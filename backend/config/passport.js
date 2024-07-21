@@ -1,6 +1,10 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/User');
+const PublicKey = require('../models/PublicKey');
+const PrivateKey = require('../models/PrivateKey');
+const { generateKeyPairSync } = require('crypto'); // Import crypto module
+const { encrypt } = require('../utils/encryption');
 
 // Google Strategy
 passport.serializeUser((user, done) => {
@@ -48,11 +52,10 @@ passport.use(new GoogleStrategy({
 
             // Encrypt keys before saving to the database
             const encryptedUserId = encrypt(user._id.toString());
-            const encryptedPublicKey = encrypt(publicKeyPEM);
             const encryptedPrivateKey = encrypt(privateKeyPEM);
 
             // Save keys in respective models
-            const publicKeyDoc = new PublicKey({ userId: encryptedUserId, publicKey: encryptedPublicKey });
+            const publicKeyDoc = new PublicKey({ userId: encryptedUserId, publicKey: publicKeyPEM });
             const privateKeyDoc = new PrivateKey({ userId: encryptedUserId, privateKey: encryptedPrivateKey });
 
             await publicKeyDoc.save();
