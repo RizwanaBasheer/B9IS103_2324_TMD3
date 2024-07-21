@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-// Example usage:
+const generateSymmetricKey = () => crypto.randomBytes(32).toString('hex');
 const encryptionKey = "55adcb2aa3bf23d8dc054205ea3c6ef7f595880b9902a6b1b6e416fde5631291"; // Generate a secure encryption key
 const ivHex = 'aabbccddeeff00112233445566778899'; 
 
@@ -25,6 +25,25 @@ function decrypt(text) {
   decrypted += decipher.final('utf8');
   return decrypted;
 }
+
+function encryptMessage(text, key) {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key, 'hex'), iv);
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return `${iv.toString('hex')}:${encrypted}`;
+}
+
+// Decrypt function for messages
+function decrypMessage(encryptedText, key) {
+  const [ivHex, encrypted] = encryptedText.split(':');
+  const iv = Buffer.from(ivHex, 'hex');
+  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key, 'hex'), iv);
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
+}
+
 // Function to encrypt message using recipient's public key
 function encryptMessage(message, publicKeyPEM) {
   const bufferMessage = Buffer.from(message, 'utf8');
@@ -47,4 +66,4 @@ function decryptMessage(encryptedMessage, privateKeyPEM) {
   return decrypted.toString('utf8');
 }
 
-module.exports = { encrypt, decrypt , encryptMessage, decryptMessage };
+module.exports = { encrypt, decrypt , encryptMessage, decryptMessage, generateSymmetricKey };
