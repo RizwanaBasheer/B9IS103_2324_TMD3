@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   googleId: String,
   email: String,
   password: String,
-  
+  contacts: [{ type: String }] // Store emails of contacts
 });
 
 userSchema.pre('save', async function (next) {
