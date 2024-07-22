@@ -14,5 +14,7 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
 router.get('/user/keys', authenticateJWT, authController.getUserKeys);
 
 router.get('/verify', authController.verifyToken);
+router.get('/logout', authController.logout);
+
 
 module.exports = router;
