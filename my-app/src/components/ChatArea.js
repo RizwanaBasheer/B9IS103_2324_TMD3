@@ -7,6 +7,9 @@ function ChatArea({ selectedContact, onToggleSidebar }) {
     const [typing, setTyping] = useState(false);
     const [online, setOnline] = useState(true); // Simulate online status
 
+    const isMobile = false;
+    const onBack = () => {}
+    
     const getRandomChatTheme = () => {
         const colors = ['#ff9a9e', '#fad0c4', '#fcb045', '#f6d365', '#fda085', '#f5a623'];
         return colors[Math.floor(Math.random() * colors.length)];
