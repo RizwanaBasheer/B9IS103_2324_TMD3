@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
 
-function ChatArea({ selectedContact, onToggleSidebar, isMobile, onBack }) {
+function ChatArea({ selectedContact, isMobile, onBack }) {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [typing, setTyping] = useState(false);
     const [online, setOnline] = useState(true); // Simulate online status
     const getRandomChatTheme = () => {
@@ -20,23 +21,25 @@ function ChatArea({ selectedContact, onToggleSidebar, isMobile, onBack }) {
         }
     }, [selectedContact]);
 
-    useEffect(() => {
-        if (typing) {
-            const timer = setTimeout(() => {
-                setTyping(false);
-            }, 2000); // Simulate typing status for 2 seconds
-            return () => clearTimeout(timer);
-        }
-    }, [typing]);
+    // useEffect(() => {
+    //     if (typing) {
+    //         const timer = setTimeout(() => {
+    //             setTyping(false);
+    //         }, 2000); // Simulate typing status for 2 seconds
+    //         return () => clearTimeout(timer);
+    //     }
+    // }, [typing]);
 
 
     const handleSend = () => {
         if (message.trim()) {
             setMessages([...messages, { user: 'Me', text: message }]);
             setMessage('');
+            setTyping(true);
             setTimeout(() => {
                 setMessages(prevMessages => [...prevMessages, { user: selectedContact.name, text: 'How are you?' }]);
-            }, 1000);
+                setTyping(false);
+            }, 2000); // Simulate reply after 2 seconds
         }
     };
 
@@ -46,7 +49,7 @@ function ChatArea({ selectedContact, onToggleSidebar, isMobile, onBack }) {
 
     if (!selectedContact) {
         return (
-            <div className="chat-area d-flex flex-column justify-content-center align-items-center" style={{ flex: 1, height: '100vh' }}>
+            <div className={`chat-area d-flex flex-column justify-content-center align-items-center ${isMobile ? 'd-none' : ''}`} style={{ flex: 1, height: '100vh' }}>
                 <h6>Select a contact to start chatting</h6>
             </div>
         );
@@ -108,9 +111,9 @@ function ChatArea({ selectedContact, onToggleSidebar, isMobile, onBack }) {
                         placeholder="Type a message"
                         value={message}
                         onChange={(e) => {
-                         setMessage(e.target.value);
-                        setTyping(true);
-                    }}
+                            setMessage(e.target.value)
+                            // setTyping(true);
+                        }}
                         onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                     />
                     <button className="btn btn-primary" onClick={handleSend}>Send</button>
