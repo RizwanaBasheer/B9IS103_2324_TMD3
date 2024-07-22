@@ -8,6 +8,7 @@ require('./utils/jwt'); // Initialize JWT
 require('./config/passport'); // Google Auth
 require('./sockets/chatSocket'); // Initialize socket
 
+const port = process.env.PORT_SERVER || 5000;
 const app = express();
 
 app.get('/', (req, res) => {
