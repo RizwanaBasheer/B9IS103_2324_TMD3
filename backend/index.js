@@ -15,7 +15,8 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-mongoose.connect("mongodb+srv://rizwanabasheer067:hNzeKAhi1VEyfUoQ@inote.mbucrtj.mongodb.net/chat_app?retryWrites=true&w=majority&appName=INote")
+const MONGOURI = "mongodb+srv://rizwanabasheer067:hNzeKAhi1VEyfUoQ@inote.mbucrtj.mongodb.net/chat_app?retryWrites=true&w=majority&appName=INote"
+mongoose.connect(MONGOURI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 

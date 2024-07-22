@@ -7,7 +7,6 @@ const PublicKey = require('../models/PublicKey');
 const { encrypt, decrypt } = require('../utils/encryption'); 
 
 // const axios = require("axios");
-const generateToken = require("../utils/generateToken.js");
 const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -17,16 +16,13 @@ const client = new OAuth2Client(
 exports.googleAuth3 = async (req, res) => {
   const { credential, clientId } = req.body;
   try {
-    console.log(1);
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: clientId,
     });
     const payload = ticket.getPayload();
     const userid = payload["sub"];
-    console.log(2);
-    // const email = payload?.data?.payload?.email;
-    console.log(3);
+    const email = payload?.data?.payload?.email || null;
 
     res.status(200).json({ token, payload, email });
   } catch (err) {
@@ -36,36 +32,37 @@ exports.googleAuth3 = async (req, res) => {
 };
 
 exports.googleAuth2 = async (req, res) => {
-  console.log(33, req.body);
   const { access_token } = req.body;
 
-  console.log(4);
   if (access_token) {
-    console.log(5);
-    const tokenInfo = await client.getTokenInfo(access_token);
-    console.log(tokenInfo);
-
-    if (tokenInfo.email) {
-      // sign jwt token  and send response
+    try{
+      const tokenInfo = await client.getTokenInfo(access_token);
+      console.log(tokenInfo)
+      if (tokenInfo.email) {
+        const user = await User.findOne({ email: tokenInfo.email });
+        console.log(user)
+        if(!user){
+          console.log(1)
+          const user = new User({
+            email: tokenInfo.email,
+          });
+          const newUser = await user.save();
+          console.log(newUser);
+          generatedToken = jwt.sign(newUser, process.env.JWT_SECRET, { expiresIn: '1h' })
+        }else{
+          console.log(2)
+          // TODO FIX TOKEN GENERATION
+          const generatedToken = jwt.sign({email:user.email}, process.env.JWT_SECRET, { expiresIn: '1h' })
+          // const token = jwt.sign(payload, process.env.JWT_SECRET, {
+          //   expiresIn: process.env.EXPIRESIN,
+          // });
+          console.log(generateToken)
+        }
+      }
+      res.status(200).json({ generatedToken });  
+    }catch(err){
+      res.status(500).json({ error: '1Internal Server Error' });
     }
-
-    // below code didn't work so refered another code from documentation
-    // await axios
-    //   .get(
-    //     `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${access_token}`,
-    //     {
-    //       headers: {
-    //         Authorization: `Bearer ${access_token}`,
-    //         Accept: "application/json",
-    //       },
-    //     }
-    //   )
-    //   .then((res) => {
-    //     res.status(200).json({ token, payload, email });
-    //   })
-    //   .catch((err) => {
-    //     res.status(400).json({ err });
-    //   });
   }
 };
 
