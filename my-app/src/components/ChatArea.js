@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
 
-function ChatArea({ selectedContact, onToggleSidebar }) {
+function ChatArea({ selectedContact, onToggleSidebar, isMobile, onBack }) {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
     const [typing, setTyping] = useState(false);
     const [online, setOnline] = useState(true); // Simulate online status
-
-    const isMobile = false;
-    const onBack = () => {}
-    
     const getRandomChatTheme = () => {
         const colors = ['#ff9a9e', '#fad0c4', '#fcb045', '#f6d365', '#fda085', '#f5a623'];
         return colors[Math.floor(Math.random() * colors.length)];
