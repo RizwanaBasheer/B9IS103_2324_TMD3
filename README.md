@@ -1,7 +1,7 @@
 # B9IS103_2324_TMD3
 # Topic: Secure Communications and collaboration Design,Programming and analysis.(Chat Application)
 
- [Link for Google Docs](https://docs.google.com/document/d/1cGaIiWyDcL1yrtYu_2z-NQ1amFtkb8YRZ_OrkCXNO-Q/edit?usp=sharing)
+ [Link for Google Docs](https://docs.google.com/document/d/1cGaIiWyDcL1yrtYu_2z-NQ1amFtkb8YRZ_OrkCXNO-Q/edit?usp=sharing)  
  [Live deployment Link](https://b9is103-2324-tmd3.onrender.com)
  ## Team Members: 
 
