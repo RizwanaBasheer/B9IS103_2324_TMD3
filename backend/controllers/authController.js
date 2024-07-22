@@ -76,7 +76,7 @@ exports.googleAuthCallback = async (req, res) => {
     const { user } = req;
    
     // Generate JWT token
-    const token = jwt.sign({ id: user.id },"GoodDog", { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     
     // Redirect or respond with token
     res.redirect(`/?token=${token}`);
