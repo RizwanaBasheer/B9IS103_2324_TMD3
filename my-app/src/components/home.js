@@ -1,33 +1,28 @@
-import React from 'react';
-import { Button, Typography } from '@mui/material';
+import React from "react";
+import { Button, Typography } from "@mui/material";
 // import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { GoogleAuth1 } from "./GoogleAuth1";
+import { GoogleAuth2 } from "./GoogleAuth2";
+import { GoogleAuth3 } from "./GoogleAuth3";
 
 function Home() {
-//   const navigate = useNavigate();
-
-  const handleLogin = async () => {
-    try {
-      const response = await axios.get('/auth/google');
-      window.location.href = response.data.redirectUrl;
-    } catch (error) {
-      console.error("Error during Google authentication:", error);
-    }
-  };
+  //   const navigate = useNavigate();
 
   return (
     <div className="text-center mt-5">
       <Typography variant="h3" gutterBottom>
         Chat App
       </Typography>
-      <Button 
-        variant="contained" 
-        color="primary" 
-        className="btn btn-primary"
-        onClick={handleLogin}
+      <div
+        style={{
+          display: "inline-block",
+        }}
+        // to center the google auth component
       >
-        Sign in with Google
-      </Button>
+        {/* <GoogleAuth1 /> NOT WORKING*/}
+        {/* <GoogleAuth2 /> */}
+        <GoogleAuth3 />
+      </div>
     </div>
   );
 }

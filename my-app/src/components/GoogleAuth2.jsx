@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-// import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 
@@ -57,21 +56,6 @@ const GoogleAuth2 = () => {
       )}
     </div>
   );
-
-  // const clientId =
-  //   "55740038008-pthqt4vsjpe1mmjng0v9f3ek7nbtdjl1.apps.googleusercontent.com";
-  // return (
-  //   <GoogleOAuthProvider clientId={clientId}>
-  //     <GoogleLogin
-  //       onSuccess={(credentialResponse) => {
-  //         console.log(credentialResponse);
-  //       }}
-  //       onError={() => {
-  //         console.log("Login Failed");
-  //       }}
-  //     />
-  //   </GoogleOAuthProvider>
-  // );
 };
 
 export { GoogleAuth2 };
