@@ -27,8 +27,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-const MONGOURI = "mongodb+srv://rizwanabasheer067:hNzeKAhi1VEyfUoQ@inote.mbucrtj.mongodb.net/chat_app?retryWrites=true&w=majority&appName=INote"
-mongoose.connect(MONGOURI)
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 
