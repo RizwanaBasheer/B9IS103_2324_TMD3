@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const GoogleAuth2 = () => {
   const [user, setUser] = useState([]);
   const [profile, setProfile] = useState(null);
+  const navigate = useNavigate();
 
   const login = useGoogleLogin({
     onSuccess: (codeResponse) => {
@@ -14,34 +16,39 @@ const GoogleAuth2 = () => {
     onError: (error) => console.log("Login Failed:", error),
   });
 
-  useEffect(() => {
+  const apiGoogleAuth = async (user) => {
     if (user && user.access_token) {
-      // axios
-      //   .post("/auth/google-auth2", {
-      //     access_token: user.access_token,
-      //   })
-      //   .then(function (response) {
-      //     console.log(response);
-      //   })
-      //   .catch(function (error) {
-      //     console.log(error);
-      //   });
-
-        axios
-        .get(
-          `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`,
-          {
-            headers: {
-              Authorization: `Bearer ${user.access_token}`,
-              Accept: "application/json",
-            },
-          }
-        )
-        .then((res) => {
-          setProfile(res.data);
+      await axios
+        .post("/auth/google-auth2", {
+          access_token: user.access_token,
         })
-        .catch((err) => console.log(err));
+        .then((res)=>{
+          console.log(res);
+          navigate("/chat")
+        })
+        .catch((error)=>{
+          console.log(error);
+        });
+
+        // axios
+        // .get(
+        //   `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`,
+        //   {
+        //     headers: {
+        //       Authorization: `Bearer ${user.access_token}`,
+        //       Accept: "application/json",
+        //     },
+        //   }
+        // )
+        // .then((res) => {
+        //   setProfile(res.data);
+        // })
+        // .catch((err) => console.log(err));
     }
+  }
+
+  useEffect(() => {
+    apiGoogleAuth(user)
   }, [user]);
 
 

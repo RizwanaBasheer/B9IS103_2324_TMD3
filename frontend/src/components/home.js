@@ -6,7 +6,6 @@ import { GoogleAuth2 } from "./GoogleAuth2";
 import { GoogleAuth3 } from "./GoogleAuth3";
 
 function Home() {
-  //   const navigate = useNavigate();
 
   return (
     <div className="text-center mt-5">
@@ -20,7 +19,7 @@ function Home() {
         // to center the google auth component
       >
         {/* <GoogleAuth1 /> NOT WORKING*/}
-        <GoogleAuth2 />
+        <GoogleAuth2/>
         {/* <GoogleAuth3 /> */}
       </div>
     </div>

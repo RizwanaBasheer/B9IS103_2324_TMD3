@@ -37,31 +37,29 @@ exports.googleAuth2 = async (req, res) => {
   if (access_token) {
     try{
       const tokenInfo = await client.getTokenInfo(access_token);
-      console.log(tokenInfo)
+      // console.log(tokenInfo)
       if (tokenInfo.email) {
         const user = await User.findOne({ email: tokenInfo.email });
-        console.log(user)
+        // console.log(user)
         if(!user){
-          console.log(1)
+          // console.log(1)
           const user = new User({
             email: tokenInfo.email,
           });
           const newUser = await user.save();
-          console.log(newUser);
+          // console.log(newUser);
           generatedToken = jwt.sign(newUser, process.env.JWT_SECRET, { expiresIn: '1h' })
         }else{
-          console.log(2)
-          // TODO FIX TOKEN GENERATION
-          const generatedToken = jwt.sign({email:user.email}, process.env.JWT_SECRET, { expiresIn: '1h' })
-          // const token = jwt.sign(payload, process.env.JWT_SECRET, {
-          //   expiresIn: process.env.EXPIRESIN,
-          // });
-          console.log(generateToken)
+          // console.log(2)
+          const payload = {email:user.email}
+          const generatedToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' })
+          // console.log(generatedToken)
+          res.status(200).json({ token: generatedToken });  
         }
       }
-      res.status(200).json({ generatedToken });  
+      // console.log(4);
     }catch(err){
-      res.status(500).json({ error: '1Internal Server Error' });
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 };
