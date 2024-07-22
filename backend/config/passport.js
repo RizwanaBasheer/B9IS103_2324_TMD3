@@ -39,7 +39,6 @@ passport.use(new GoogleStrategy({
                 modulusLength: 2048,
             });
 
-            // console.log({privateKey,publicKey});
             // Convert keys to PEM format
             const publicKeyPEM = publicKey.export({
                 type: 'pkcs1',
@@ -54,8 +53,7 @@ passport.use(new GoogleStrategy({
             // Encrypt keys before saving to the database
             const encryptedUserId = encrypt(user._id.toString());
             const encryptedPrivateKey = encrypt(privateKeyPEM);
-            // console.log(encryptedUserId);
-            // console.log(encryptedPrivateKey)
+
             // Save keys in respective models
             const publicKeyDoc = new PublicKey({ userId: encryptedUserId, publicKey: publicKeyPEM });
             const privateKeyDoc = new PrivateKey({ userId: encryptedUserId, privateKey: encryptedPrivateKey });

@@ -14,24 +14,13 @@ module.exports = (io) => {
   });
 
   io.on('connection', (socket) => {
-    console.log('User connected', socket.user.id);
-
-    socket.on('sendMessage', async (data) => {
-      const { receiverId, content } = data;
-      const senderId = socket.user.id;
-
-      const newMessage = new Message({
-        sender: senderId,
-        receiver: receiverId,
-        content,
-      });
-
-      await newMessage.save();
-      io.to(receiverId).emit('receiveMessage', newMessage);
-    });
+    console.log('User connected:', socket.user ? socket.user.id : 'Unknown');
 
     socket.on('disconnect', () => {
-      console.log('User disconnected', socket.user.id);
+      console.log('User disconnected:', socket.user ? socket.user.id : 'Unknown');
     });
   });
+
+  require('../controllers/chatController').initialize(io);
+
 };

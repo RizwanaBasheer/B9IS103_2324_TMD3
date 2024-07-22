@@ -1,8 +1,16 @@
 const crypto = require('crypto');
 
-const generateSymmetricKey = () => crypto.randomBytes(32).toString('hex');
-const encryptionKey = "55adcb2aa3bf23d8dc054205ea3c6ef7f595880b9902a6b1b6e416fde5631291"; // Generate a secure encryption key
-const ivHex = 'aabbccddeeff00112233445566778899'; 
+let key = undefined
+
+const generateSymmetricKey = () => {
+  if(key===undefined){
+    key = crypto.randomBytes(32).toString('hex'); 
+  }
+  return key
+} 
+
+const encryptionKey = process.env.KEY_ENCRYPTION_KEY
+const ivHex = process.env.IVHEX
 
 // Encrypt function
 function encrypt(text) {
