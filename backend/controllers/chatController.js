@@ -1,5 +1,5 @@
 // controllers/chatController.js
-const { encrypt, decrypt, encryptMessage, decryptMessage } = require('../utils/encryption');
+const { encrypt, decrypt, encryptMessage, decryptMessage , encryptMessageKey, decryptMessageKey, generateSymmetricKey} = require('../utils/encryption');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const PublicKey = require('../models/PublicKey');
@@ -67,14 +67,14 @@ exports.sendMessage = async (req, res) => {
       // Encrypt the symmetric key with the recipient's public key
       const encryptedSymmetricKey = encryptMessageKey(symmetricKey, publicKeyPEM);
 
-    // Save the encrypted message and the symmetric key to the database
+      // Save the encrypted message and the symmetric key to the database
     
-    const message = new Message({
-      sender,
-      receiver: recipient.id,
-      content: encryptedContent,
-    });
-    await message.save();
+      const message = new Message({
+        sender,
+        receiver: recipient.id,
+        content: encryptedContent,
+      });
+      await message.save();
 
     // Emit the message to all connected clients
     io.emit('send_message', {
@@ -84,7 +84,7 @@ exports.sendMessage = async (req, res) => {
       timestamp: message.timestamp,
     });
 
-      // Check if the email has already been sent during the current session
+    // Check if the email has already been sent during the current session
     if (!req.session.emailSent) {
       // Send the encrypted symmetric key via email
       const mailOptions = {
@@ -134,7 +134,6 @@ exports.getMessages = async (req, res) => {
 
     let encryptedSymmetricKey = req.headers['x-symmetric-key']; // Assuming this is set as a header
     
-    
     if (!encryptedSymmetricKey) {
       return res.status(400).json({ error: 'Symmetric key not found in headers' });
     }
@@ -143,34 +142,36 @@ exports.getMessages = async (req, res) => {
     const recipient = await User.findById(recipientId);
     const encryptedUserId = encrypt(recipient.id);
 
-    if (recipient) {
-      const encryptedUserId = encrypt(recipient.id);
+    const privateKeyDoc = await PrivateKey.findOne({ userId: encryptedUserId });
 
-
-      const PrivateKeyDoc = await PrivateKey.findOne({ userId: encryptedUserId });
-
-      if (!PrivateKeyDoc) {
-        return res.status(404).json({ error: 'Keys not found' });
-      }
-
-      // Decrypt keys
-      const PrivateKeyPEM = decrypt(PrivateKeyDoc.privateKey);
-
-      // Fetch all messages for the recipient from the database
-      const messages = await Message.find({ receiver: recipientId });
-      if (!messages.length) {
-        return res.status(404).json({ error: 'No messages found' });
-      }
-
-      // Decrypt each message content
-      const decryptedMessages = messages.map(message => ({
-        sender: message.sender,
-        content: decryptMessage(message.content, PrivateKeyPEM),
-        createdAt: message.createdAt
-      }));
-
-      res.status(200).json({ messages: decryptedMessages });
+    if (!privateKeyDoc) {
+      throw new Error('Private key not found');
     }
+    
+    const PrivateKeyPEM = decrypt(PrivateKeyDoc.privateKey);
+
+    // Decrypt the symmetric key
+    const symmetricKey = decryptMessageKey(encryptedSymmetricKey, privateKeyPEM);
+  
+     // Decrypt each message content
+     const decryptedMessages = await Promise.all(messages.map(async (message) => {
+      let decryptedContent = ''
+      if(message.symmetricKey === undefined){
+        decryptedContent = decrypMessage(message.content, symmetricKey);
+        message.symmetricKey = encryptedSymmetricKey;
+        await message.save();
+      }
+      else{
+        decryptedContent = decrypMessage(message.content, decryptMessageKey(message.symmetricKey,privateKeyPEM));
+      }
+      console.log(decryptedContent);
+      return {
+        ...message.toObject(),
+        content: decryptedContent,
+      };
+    }));
+
+    res.status(200).json({ messages: decryptedMessages });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
