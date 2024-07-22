@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import randomColor from 'randomcolor';
 
 const contacts = [
-  { id: 1, name: 'John Doe', avatar: 'https://via.placeholder.com/40' },
-  { id: 2, name: 'Jane Smith', avatar: 'https://via.placeholder.com/40' },
-  { id: 3, name: 'Bob Johnson', avatar: 'https://via.placeholder.com/40' },
+  { id: 1, name: 'John Doe' },
+  { id: 2, name: 'Jane Smith' },
+  { id: 3, name: 'Bob Johnson' },
 ];
 
-function Sidebar({ onSelectContact, showSidebar }) {
+function Sidebar({ onSelectContact, selectedContact, isMobile }) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredContacts = contacts.filter(contact =>
@@ -17,7 +17,7 @@ function Sidebar({ onSelectContact, showSidebar }) {
   const getRandomColor = () => randomColor({ luminosity: 'light', format: 'hex' });
 
   return (
-    <div className={`sidebar bg-light border-end ${showSidebar ? 'd-block' : 'd-none'} d-md-block`} style={{ width: '250px', height: '100vh', overflowY: 'auto' }}>
+    <div className={`sidebar bg-light border-end ${isMobile ? 'sidebar-mobile' : ''}`} style={{ height: '100vh', width: isMobile ? '100vw' : '250px', overflowY: 'auto' }}>
       <div className="p-3">
         <input
           type="text"
@@ -30,7 +30,7 @@ function Sidebar({ onSelectContact, showSidebar }) {
       <ul className="list-group">
         {filteredContacts.map((contact) => (
           <li 
-            className={`list-group-item d-flex align-items-center ${selectedContact && selectedContact.id === contact.id ? 'active' : ''}`}
+            className={`list-group-item d-flex align-items-center ${selectedContact && selectedContact.id === contact.id ? 'active' : ''}`} 
             key={contact.id}
             onClick={() => onSelectContact(contact)}
           >
