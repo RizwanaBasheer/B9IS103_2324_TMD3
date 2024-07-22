@@ -16,18 +16,34 @@ const GoogleAuth2 = () => {
 
   useEffect(() => {
     if (user && user.access_token) {
-      axios
-        .post("/auth/google-auth2", {
-          access_token: user.access_token,
+      // axios
+      //   .post("/auth/google-auth2", {
+      //     access_token: user.access_token,
+      //   })
+      //   .then(function (response) {
+      //     console.log(response);
+      //   })
+      //   .catch(function (error) {
+      //     console.log(error);
+      //   });
+
+        axios
+        .get(
+          `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`,
+          {
+            headers: {
+              Authorization: `Bearer ${user.access_token}`,
+              Accept: "application/json",
+            },
+          }
+        )
+        .then((res) => {
+          setProfile(res.data);
         })
-        .then(function (response) {
-          console.log(response);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+        .catch((err) => console.log(err));
     }
   }, [user]);
+
 
   // log out function to log the user out of google and set the profile array to null
   const logOut = () => {
