@@ -8,7 +8,7 @@ export const GoogleAuth3 = () => {
       onSuccess={(credentialResponse) => {
         console.log(credentialResponse);
         axios
-          .post("/auth/google-auth", {
+          .post("/auth/google-auth3", {
             clientId: credentialResponse.clientId,
             credential: credentialResponse.credential,
           })

@@ -4,29 +4,28 @@ import axios from "axios";
 
 const GoogleAuth2 = () => {
   const [user, setUser] = useState([]);
-  const [profile, setProfile] = useState([]);
+  const [profile, setProfile] = useState(null);
 
   const login = useGoogleLogin({
-    onSuccess: (codeResponse) => setUser(codeResponse),
+    onSuccess: (codeResponse) => {
+      console.log(codeResponse);
+      setUser(codeResponse);
+    },
     onError: (error) => console.log("Login Failed:", error),
   });
 
   useEffect(() => {
-    if (user) {
+    if (user && user.access_token) {
       axios
-        .get(
-          `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`,
-          {
-            headers: {
-              Authorization: `Bearer ${user.access_token}`,
-              Accept: "application/json",
-            },
-          }
-        )
-        .then((res) => {
-          setProfile(res.data);
+        .post("/auth/google-auth2", {
+          access_token: user.access_token,
         })
-        .catch((err) => console.log(err));
+        .then(function (response) {
+          console.log(response);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     }
   }, [user]);
 

@@ -20,8 +20,8 @@ function Home() {
         // to center the google auth component
       >
         {/* <GoogleAuth1 /> NOT WORKING*/}
-        {/* <GoogleAuth2 /> */}
-        <GoogleAuth3 />
+        <GoogleAuth2 />
+        {/* <GoogleAuth3 /> */}
       </div>
     </div>
   );
