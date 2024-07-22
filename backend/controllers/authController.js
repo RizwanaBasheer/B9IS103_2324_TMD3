@@ -6,6 +6,69 @@ const PrivateKey = require('../models/PrivateKey');
 const PublicKey = require('../models/PublicKey');
 const { encrypt, decrypt } = require('../utils/encryption'); 
 
+// const axios = require("axios");
+const generateToken = require("../utils/generateToken.js");
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_SECRET
+);
+
+exports.googleAuth3 = async (req, res) => {
+  const { credential, clientId } = req.body;
+  try {
+    console.log(1);
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: clientId,
+    });
+    const payload = ticket.getPayload();
+    const userid = payload["sub"];
+    console.log(2);
+    // const email = payload?.data?.payload?.email;
+    console.log(3);
+
+    res.status(200).json({ token, payload, email });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ err });
+  }
+};
+
+exports.googleAuth2 = async (req, res) => {
+  console.log(33, req.body);
+  const { access_token } = req.body;
+
+  console.log(4);
+  if (access_token) {
+    console.log(5);
+    const tokenInfo = await client.getTokenInfo(access_token);
+    console.log(tokenInfo);
+
+    if (tokenInfo.email) {
+      // sign jwt token  and send response
+    }
+
+    // below code didn't work so refered another code from documentation
+    // await axios
+    //   .get(
+    //     `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${access_token}`,
+    //     {
+    //       headers: {
+    //         Authorization: `Bearer ${access_token}`,
+    //         Accept: "application/json",
+    //       },
+    //     }
+    //   )
+    //   .then((res) => {
+    //     res.status(200).json({ token, payload, email });
+    //   })
+    //   .catch((err) => {
+    //     res.status(400).json({ err });
+    //   });
+  }
+};
+
 exports.googleAuth = passport.authenticate('google', { scope: ['profile', 'email'] });
 
 exports.googleAuthCallback = async (req, res) => {
