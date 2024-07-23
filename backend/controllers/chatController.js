@@ -7,11 +7,6 @@ const PrivateKey = require('../models/PrivateKey');
 const nodemailer = require('nodemailer');
 
 require('dotenv').config();
-let io;
-
-exports.initialize = (socketIoInstance) => {
-  io = socketIoInstance;
-};
 
 // Configure nodemailer
 const transporter = nodemailer.createTransport({
@@ -75,14 +70,6 @@ exports.sendMessage = async (req, res) => {
         content: encryptedContent,
       });
       await message.save();
-
-    // Emit the message to all connected clients
-    io.emit('send_message', {
-      senderId: senderUser.id,
-      receiverId: recipient.id,
-      content: content,
-      timestamp: message.timestamp,
-    });
 
     // Check if the email has already been sent during the current session
     if (!req.session.emailSent) {
@@ -164,7 +151,7 @@ exports.getMessages = async (req, res) => {
       else{
         decryptedContent = decrypMessage(message.content, decryptMessageKey(message.symmetricKey,privateKeyPEM));
       }
-      console.log(decryptedContent);
+
       return {
         ...message.toObject(),
         content: decryptedContent,
