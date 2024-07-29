@@ -7,6 +7,7 @@ const PrivateKey = require('../models/PrivateKey');
 const nodemailer = require('nodemailer');
 
 require('dotenv').config();
+let emailSent = false
 
 // Configure nodemailer
 const transporter = nodemailer.createTransport({
@@ -22,6 +23,13 @@ exports.sendMessage = async (req, res) => {
     const { receiverEmail, content } = req.body;
     const sender = req.user.id;
 
+    const session = req.session;
+
+     // Initialize emailSent if it doesn't exist
+     if (emailSent === undefined) {
+      session.emailSent = false;
+    }
+
     const recipient = await User.findOne({ email: receiverEmail });
     if (!recipient) {
       return res.status(404).json({ error: 'Recipient not found' });
@@ -31,13 +39,11 @@ exports.sendMessage = async (req, res) => {
     const recipientUser = await User.findOne({ email: receiverEmail });
 
     if (!senderUser.contacts.includes(receiverEmail)) {
-      // Add recipient email to sender's contact list
       senderUser.contacts.push(receiverEmail);
       await senderUser.save();
     }
 
     if (!recipientUser.contacts.includes(senderUser.email)) {
-      // Add sender email to recipient's contact list
       recipientUser.contacts.push(senderUser.email);
       await recipientUser.save();
     }
@@ -50,19 +56,10 @@ exports.sendMessage = async (req, res) => {
         return res.status(404).json({ error: 'Public Key not found' });
       }
 
-      // Decrypt Public Key 
       const publicKeyPEM = decrypt(publicKeyDoc.publicKey);
-     
-      // Generate a new symmetric key for the session
       const symmetricKey = generateSymmetricKey();
-      console.log(symmetricKey);
-      // Encrypt the message with the symmetric key
       const encryptedContent = encryptMessage(content, symmetricKey);
-
-      // Encrypt the symmetric key with the recipient's public key
       const encryptedSymmetricKey = encryptMessageKey(symmetricKey, publicKeyPEM);
-
-      // Save the encrypted message and the symmetric key to the database
     
       const message = new Message({
         sender,
@@ -70,11 +67,10 @@ exports.sendMessage = async (req, res) => {
         content: encryptedContent,
       });
       await message.save();
-
-    // Check if the email has already been sent during the current session
-    if (!req.session.emailSent) {
-      // Send the encrypted symmetric key via email
-      const mailOptions = {
+      console.log(session.emailSent);
+      // Update session data to track email sent status
+      if (!session.emailSent) {
+       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: recipient.email,
         subject: 'Encrypted Symmetric Key for Your Session',
@@ -98,6 +94,7 @@ exports.sendMessage = async (req, res) => {
 
       // Mark that the email has been sent for this session
       req.session.emailSent = true;
+      console.log(req.session);
     }
 
     res.status(200).json({ message: 'Message sent and key emailed' });
