@@ -83,7 +83,9 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
 
     if (!selectedContact) {
         return (
@@ -92,6 +94,14 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
             </div>
         );
     }
+
+    const handleKeySubmit = () => {
+        sessionStorage.setItem(selectedContact.name, keyInput);
+        setDropdownOpen(false);
+        // Emit to update the receiver with the key
+        socket.current.emit('updateKey', { receiverEmail: selectedContact.email, key: keyInput });
+    };
+
 
     const chatThemeColor = getRandomChatTheme();
 
@@ -109,6 +119,23 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
                     </div>
                     <h6 className="mb-0">{selectedContact.name}</h6>
                     <span className={`ms-2 badge ${online ? 'bg-success' : 'bg-secondary'}`}>{online ? 'Online' : 'Offline'}</span>
+                    <div className="ms-auto">
+                        <button className="btn btn-link text-white" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                            <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        {dropdownOpen && (
+                            <div className="dropdown-menu show p-3" style={{ position: 'absolute', top: '56px', right: '0', zIndex: '1000' }}>
+                                <textarea
+                                    className="form-control mb-2"
+                                    placeholder="Enter a key"
+                                    value={keyInput}
+                                    onChange={(e) => setKeyInput(e.target.value)}
+                                    style={{ width: '200px' }}
+                                />
+                                <button className="btn btn-primary" onClick={handleKeySubmit}>Submit</button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
             {!isMobile && (
@@ -120,14 +147,31 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
                     </div>
                     <h6 className="mb-0">{selectedContact.name}</h6>
                     <span className={`ms-2 badge ${online ? 'bg-success' : 'bg-secondary'}`}>{online ? 'Online' : 'Offline'}</span>
+                    <div className="ms-auto">
+                        <button className="btn btn-link text-white" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                            <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        {dropdownOpen && (
+                            <div className="dropdown-menu show p-3" style={{ position: 'absolute', top: '56px', right: '0', zIndex: '1000' }}>
+                                <textarea
+                                    className="form-control mb-2"
+                                    placeholder="Enter a key"
+                                    value={keyInput}
+                                    onChange={(e) => setKeyInput(e.target.value)}
+                                    style={{ width: '200px' }}
+                                />
+                                <button className="btn btn-primary" onClick={handleKeySubmit}>Submit</button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
             <div className="chat-messages flex-fill p-3 overflow-auto" style={{ borderTop: '1px solid #ddd' }}>
                 <ul className="list-unstyled">
                     {messages.map((msg, index) => (
-                        <li key={index} className={`mb-2 ${msg.user === 'Me' ? 'text-end' : ''}`}>
-                            <div className={`d-inline-block p-2 rounded ${msg.user === 'Me' ? 'bg-primary text-white' : 'bg-light'}`}>
-                                {msg.text}
+                        <li key={index} className={`mb-2 ${msg.user === 'Me' ? 'text-end' : 'text-start'}`}>
+                            <div className={`d-inline-block p-2 rounded ${msg.user === 'Me' ? 'bg-primary text-white' : 'bg-light'}`} style={{ maxWidth: '70%' }}>
+                                {msg.content}
                             </div>
                         </li>
                     ))}
@@ -138,6 +182,7 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
                             </div>
                         </li>
                     )}
+                    <div ref={messagesEndRef} />
                 </ul>
             </div>
             <div className={`chat-input p-3 border-top bg-light ${isMobile ? 'chat-input-mobile' : ''}`}>
@@ -148,10 +193,7 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
                         className="form-control"
                         placeholder="Type a message"
                         value={message}
-                        onChange={(e) => {
-                            setMessage(e.target.value)
-                            // setTyping(true);
-                        }}
+                        onChange={(e) => setMessage(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                     />
                     <button className="btn btn-primary" onClick={handleSend}>Send</button>
