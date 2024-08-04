@@ -4,14 +4,18 @@ import Home from './components/home';
 import ChatApp from './components/ChatApp';
 import './App.css'
 
+
 function App() {
+  
   return (
     <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/chat" element={<ChatApp />} />
-        </Routes>
-    </Router>
+    {/* <div className="container-fluid"> */}
+    <Routes>
+      {!sessionStorage.getItem("token") ? <Route path="/" element={<Home />} /> : <Route path="/" element={<ChatApp/>} />}
+    </Routes>
+    {/* </div> */}
+
+  </Router>
   );
 }
 
