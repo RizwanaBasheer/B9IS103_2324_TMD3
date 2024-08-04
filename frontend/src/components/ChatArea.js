@@ -1,51 +1,89 @@
 import React, { useState, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
+import io from 'socket.io-client';
+import axios from 'axios';
 
 function ChatArea({ selectedContact, isMobile, onBack }) {
+    const socket = useRef();
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [typing, setTyping] = useState(false);
     const [online, setOnline] = useState(true); // Simulate online status
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [keyInput, setKeyInput] = useState(sessionStorage.getItem('key') || '');
+    const messagesEndRef = useRef(null);
+    const pollingInterval = useRef(null);
+
     const getRandomChatTheme = () => {
         const colors = ['#ff9a9e', '#fad0c4', '#fcb045', '#f6d365', '#fda085', '#f5a623'];
         return colors[Math.floor(Math.random() * colors.length)];
     };
 
     useEffect(() => {
+        socket.current = io('http://localhost:5000', {
+            query: { token: sessionStorage.getItem('token') || '' } // Fetch token from sessionStorage or set it as needed
+        });
+
         if (selectedContact) {
-            setMessages([
-                { user: selectedContact.name, text: 'Hello!' },
-                { user: 'Me', text: 'Hi!' }
-            ]);
+            fetchMessages();
+            startPolling();
         }
+
+        return () => {
+            stopPolling();
+        };
     }, [selectedContact]);
 
-    // useEffect(() => {
-    //     if (typing) {
-    //         const timer = setTimeout(() => {
-    //             setTyping(false);
-    //         }, 2000); // Simulate typing status for 2 seconds
-    //         return () => clearTimeout(timer);
-    //     }
-    // }, [typing]);
+    const fetchMessages = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/chat/messages', {
+                headers: {
+                    "Authorization": `${sessionStorage.getItem('token')}`,
+                    "x-symmetric-key": keyInput
+                }
+            });
+            console.log(response.data);
+            setMessages(response.data.messages);
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+        }
+    };
 
+    const startPolling = () => {
+        pollingInterval.current = setInterval(fetchMessages, 1000); // Poll every 3 seconds
+    };
+
+    const stopPolling = () => {
+        if (pollingInterval.current) {
+            clearInterval(pollingInterval.current);
+        }
+    };
 
     const handleSend = () => {
         if (message.trim()) {
-            setMessages([...messages, { user: 'Me', text: message }]);
+            const newMessage = { user: 'Me', content: message };
+            setMessages([...messages, newMessage]);
+            socket.current.emit('sendMessage', {
+                receiverEmail: selectedContact.email, // Adjust based on your data structure
+                content: message,
+            });
             setMessage('');
             setTyping(true);
             setTimeout(() => {
-                setMessages(prevMessages => [...prevMessages, { user: selectedContact.name, text: 'How are you?' }]);
                 setTyping(false);
             }, 2000); // Simulate reply after 2 seconds
         }
     };
 
-    const addEmoji=(emoji)=>{
-        setMessage(message+emoji);
+    const addEmoji = (emoji) => {
+        setMessage(message + emoji);
     };
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    
 
     if (!selectedContact) {
         return (
@@ -55,25 +93,25 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
         );
     }
 
-    const chatThemeColor= getRandomChatTheme();
+    const chatThemeColor = getRandomChatTheme();
 
     return (
         <div className={`chat-area d-flex flex-column ${isMobile ? 'chat-area-mobile' : ''}`} style={{ flex: 1, height: '100vh', background: `linear-gradient(to bottom right, ${chatThemeColor}, #fff)` }}>
             {isMobile && (
-            <div className="chat-header bg-primary text-white p-3 d-flex align-items-center">
-                <button className="btn btn-link text-white" onClick={onBack}>
-                    <i className="bi bi-arrow-left"></i>
-                </button>
-                <div className="avatar me-2" style={{ backgroundColor: chatThemeColor, width: '40px', height: '40px', borderRadius: '50%' }}>
+                <div className="chat-header bg-primary text-white p-3 d-flex align-items-center">
+                    <button className="btn btn-link text-white" onClick={onBack}>
+                        <i className="bi bi-arrow-left"></i>
+                    </button>
+                    <div className="avatar me-2" style={{ backgroundColor: chatThemeColor, width: '40px', height: '40px', borderRadius: '50%' }}>
                         <span className="text-white d-flex justify-content-center align-items-center" style={{ width: '100%', height: '100%', fontSize: '1.2rem' }}>
                             {selectedContact.name[0]}
                         </span>
+                    </div>
+                    <h6 className="mb-0">{selectedContact.name}</h6>
+                    <span className={`ms-2 badge ${online ? 'bg-success' : 'bg-secondary'}`}>{online ? 'Online' : 'Offline'}</span>
                 </div>
-                <h6 className="mb-0">{selectedContact.name}</h6>
-                <span className={`ms-2 badge ${online ? 'bg-success' : 'bg-secondary'}`}>{online ? 'Online' : 'Offline'}</span>
-            </div>
             )}
-             {!isMobile && (
+            {!isMobile && (
                 <div className="chat-header bg-primary text-white p-3 d-flex align-items-center">
                     <div className="avatar me-2" style={{ backgroundColor: chatThemeColor, width: '40px', height: '40px', borderRadius: '50%' }}>
                         <span className="text-white d-flex justify-content-center align-items-center" style={{ width: '100%', height: '100%', fontSize: '1.2rem' }}>
@@ -104,7 +142,7 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
             </div>
             <div className={`chat-input p-3 border-top bg-light ${isMobile ? 'chat-input-mobile' : ''}`}>
                 <div className="input-group">
-                 <EmojiPicker onEmojiSelect={addEmoji} />
+                    <EmojiPicker onEmojiSelect={addEmoji} />
                     <input
                         type="text"
                         className="form-control"
