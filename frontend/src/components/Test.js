@@ -21,6 +21,23 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
         }
     }, [selectedContact]);
     
+    const handleSend = () => {
+        if (message.trim()) {
+            setMessages([...messages, { user: 'Me', text: message }]);
+            setMessage('');
+            setTyping(true);
+            setTimeout(() => {
+                setMessages(prevMessages => [...prevMessages, { user: selectedContact.name, text: 'How are you?' }]);
+                setTyping(false);
+            }, 1000);
+        }
+    };
+    
+    const handleKeySubmit = () => {
+        sessionStorage.setItem('Key', keyInput);
+        setDropdownOpen(false);
+    };
+    
     
     return (
         <div>
