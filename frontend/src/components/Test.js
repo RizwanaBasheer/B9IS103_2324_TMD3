@@ -78,7 +78,8 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
                         )}
                     </div>
            </div>
-             {!isMobile && (
+            )}
+            {!isMobile && (
                 <div className="chat-header bg-primary text-white p-3 d-flex align-items-center">
                     <div className="avatar me-2" style={{ backgroundColor: chatThemeColor, width: '40px', height: '40px', borderRadius: '50%' }}>
                         <span className="text-white d-flex justify-content-center align-items-center" style={{ width: '100%', height: '100%', fontSize: '1.2rem' }}>
