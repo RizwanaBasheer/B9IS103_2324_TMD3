@@ -47,3 +47,99 @@
   color: white !important;
 }
 
+/* Mobile-specific adjustments */
+.chat-app-mobile {
+  flex-direction: column;
+}
+
+.chat-area-fullscreen {
+  margin-left: 0;
+}
+
+.sidebar-mobile {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.chat-area-mobile {
+  margin-bottom: 56px; /* Height of the chat input */
+}
+
+.chat-input-mobile {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  border-top: 1px solid #ddd;
+}
+
+.chat-header .btn-link {
+  font-size: 1.5rem;
+}
+
+.avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  color: white;
+}
+
+.chat-messages {
+  background: url('https://www.transparenttextures.com/patterns/asfalt-light.png'); /* Example texture */
+}
+
+.input-group button {
+  border: none;
+}
+
+.emoji-mart {
+  position: absolute;
+  bottom: 56px;
+  right: 0;
+  z-index: 1000;
+}
+.emoji-picker {
+  display: flex;
+  flex-wrap: wrap;
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 5px;
+  background: #fff;
+}
+
+.emoji-picker span {
+  cursor: pointer;
+  margin: 5px;
+}
+
+.chat-input-mobile {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #fff;
+  border-top: 1px solid #ddd;
+}
+
+.chat-area-mobile .chat-input {
+  padding: 0;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.4em 0.8em;
+  border-radius: 0.25rem;
+}
+
+.badge.bg-success {
+  background-color: #198754;
+}
+
+.badge.bg-secondary {
+  background-color: #6c757d;
+}
