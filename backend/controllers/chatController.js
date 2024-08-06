@@ -5,9 +5,8 @@ const User = require('../models/User');
 const PublicKey = require('../models/PublicKey');
 const PrivateKey = require('../models/PrivateKey');
 const nodemailer = require('nodemailer');
-
 require('dotenv').config();
-let emailSent = false
+const { checkAndUpdateEmailSent, markEmailAsSent } = require('../utils/cache'); 
 
 // Configure nodemailer
 const transporter = nodemailer.createTransport({
@@ -23,12 +22,12 @@ exports.sendMessage = async (req, res) => {
     const { receiverEmail, content } = req.body;
     const sender = req.user.id;
 
-    const session = req.session;
+    // const session = req.session;
 
-     // Initialize emailSent if it doesn't exist
-     if (emailSent === undefined) {
-      session.emailSent = false;
-    }
+    //  // Initialize emailSent if it doesn't exist
+    //  if (emailSent === undefined) {
+    //   session.emailSent = false;
+    // }
 
     const recipient = await User.findOne({ email: receiverEmail });
     if (!recipient) {
@@ -56,21 +55,22 @@ exports.sendMessage = async (req, res) => {
         return res.status(404).json({ error: 'Public Key not found' });
       }
 
-      const publicKeyPEM = decrypt(publicKeyDoc.publicKey);
+      const publicKeyPEM = publicKeyDoc.publicKey;
       const symmetricKey = generateSymmetricKey();
       const encryptedContent = encryptMessage(content, symmetricKey);
       const encryptedSymmetricKey = encryptMessageKey(symmetricKey, publicKeyPEM);
     
       const message = new Message({
-        sender,
+        sender: senderId,
         receiver: recipient.id,
         content: encryptedContent,
       });
       await message.save();
-      console.log(session.emailSent);
+
+    
       // Update session data to track email sent status
-      if (!session.emailSent) {
-       const mailOptions = {
+      if (!checkAndUpdateEmailSent(recipient.id)) {
+        const mailOptions = {
         from: process.env.EMAIL_USER,
         to: recipient.email,
         subject: 'Encrypted Symmetric Key for Your Session',
@@ -92,9 +92,8 @@ exports.sendMessage = async (req, res) => {
         }
       });
 
-      // Mark that the email has been sent for this session
-      req.session.emailSent = true;
-      console.log(req.session);
+      // Mark email as sent in cache
+      markEmailAsSent(recipient.id);
     }
 
     res.status(200).json({ message: 'Message sent and key emailed' });

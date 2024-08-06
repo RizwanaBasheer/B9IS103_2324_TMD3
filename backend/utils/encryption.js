@@ -6,6 +6,7 @@ const generateSymmetricKey = () => {
   if(key===undefined){
     key = crypto.randomBytes(32).toString('hex'); 
   }
+  console.log(key);
   return key
 } 
 
@@ -57,7 +58,8 @@ function encryptMessage(message, publicKeyPEM) {
   const bufferMessage = Buffer.from(message, 'utf8');
   const encrypted = crypto.publicEncrypt({
     key: publicKeyPEM,
-    padding: crypto.constants.RSA_PKCS1_PADDING // Ensure correct padding
+    padding: crypto.constants.RSA_PKCS1_PADDING,
+    oaepHash: "sha256"  // Ensure correct padding
   }, bufferMessage);
 
   return encrypted.toString('base64');
@@ -68,7 +70,8 @@ function decryptMessage(encryptedMessage, privateKeyPEM) {
   const bufferEncrypted = Buffer.from(encryptedMessage, 'base64');
   const decrypted = crypto.privateDecrypt({
     key: privateKeyPEM,
-    padding: crypto.constants.RSA_PKCS1_PADDING // Ensure correct padding
+    padding: crypto.constants.RSA_PKCS1_PADDING ,
+    oaepHash: "sha256"  // Ensure correct padding
   }, bufferEncrypted);
 
   return decrypted.toString('utf8');
