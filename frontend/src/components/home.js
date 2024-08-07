@@ -14,6 +14,9 @@ function Home(props) {
     color: '#fff'
   };
 
+  console.log(props.apiUrl);
+  
+
   return (
     <div style={containerStyle}>
       <Typography variant="h3" gutterBottom>

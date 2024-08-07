@@ -5,6 +5,7 @@ import ChatApp from './components/ChatApp';
 import './App.css';
 import { OnlineUsersProvider } from './context/OnlineUsersContext';
 const apiUrl = process.env.REACT_APP_API_BASE_URL;
+console.log(apiUrl);
 
 function App() {
   return (
