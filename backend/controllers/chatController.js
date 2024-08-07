@@ -1,12 +1,11 @@
-// controllers/chatController.js
-const { encrypt, decrypt, encryptMessage, decryptMessage , generateSymmetricKey} = require('../utils/encryption');
+const { encrypt, decrypt, encryptMessage, decrypMessage, generateSymmetricKey } = require('../utils/encryption');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const PublicKey = require('../models/PublicKey');
 const PrivateKey = require('../models/PrivateKey');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
-const { checkAndUpdateEmailSent, markEmailAsSent } = require('../utils/cache'); 
+const { checkAndUpdateEmailSent, markEmailAsSent } = require('../utils/cache'); // Adjust the path as needed
 const crypto = require('crypto');
 
 // Configure nodemailer
@@ -17,6 +16,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS // Sender's email password
   }
 });
+
 
 const encryptMessageKey = (message, publicKeyPEM) => {
   const bufferMessage = Buffer.from(message, 'utf8');
@@ -45,7 +45,7 @@ exports.sendMessage = async (req, res) => {
 
     const recipient = await User.findOne({ email: receiverEmail });
     if (!recipient) return res.status(404).json({ error: 'Recipient not found' });
-  
+
     const senderUser = await User.findById(senderId);
     const recipientUser = await User.findOne({ email: receiverEmail });
 
@@ -59,36 +59,34 @@ exports.sendMessage = async (req, res) => {
       await recipientUser.save();
     }
 
-    const symmetricKey = generateSymmetricKey();
-    console.log(symmetricKey);
-
+    const symmetricKey = generateSymmetricKey(recipient.id);
     const encryptedRecieverId = encrypt(recipient.id.toString());
     const publicKeyDoc = await PublicKey.findOne({ userId: encryptedRecieverId  });
 
-      if (!publicKeyDoc) return res.status(404).json({ error: 'Public Key not found' });
+    if (!publicKeyDoc) return res.status(404).json({ error: 'Public key not found' });
 
-      const publicKeyPEM = publicKeyDoc.publicKey;
-      const encryptedContent = encryptMessage(content, symmetricKey);
-      const encryptedSymmetricKey = encryptMessageKey(symmetricKey, publicKeyPEM);
-      const encryptedSenderId =  encrypt(senderId.toString());
-      const publicKeyDoc1 = await PublicKey.findOne({ userId: encryptedSenderId  });
-    
-      if (!publicKeyDoc1) return res.status(404).json({ error: 'Public key not found' });
-      const publicKeyPEM1 = publicKeyDoc1.publicKey;
-      const senderEncryptedSymmetricKey = encryptMessageKey(symmetricKey, publicKeyPEM1);
+    const publicKeyPEM = publicKeyDoc.publicKey;
+    const encryptedContent = encryptMessage(content, symmetricKey);
+    const encryptedSymmetricKey = encryptMessageKey(symmetricKey, publicKeyPEM);
+    const encryptedSenderId =  encrypt(senderId.toString());
+    const publicKeyDoc1 = await PublicKey.findOne({ userId: encryptedSenderId  });
 
-      const message = new Message({
-        sender: senderId,
-        receiver: recipient.id,
-        content: encryptedContent,
-        senderSymmetricKey: senderEncryptedSymmetricKey,
-        ReceiverSymmetricKey: encryptedSymmetricKey
-      });
-      await message.save();
+    if (!publicKeyDoc1) return res.status(404).json({ error: 'Public key not found' });
 
-      // Update session data to track email sent status
-      if (!checkAndUpdateEmailSent(recipient.id)) {
-        const mailOptions = {
+    const publicKeyPEM1 = publicKeyDoc1.publicKey;
+    const senderEncryptedSymmetricKey = encryptMessageKey(symmetricKey, publicKeyPEM1);
+
+    const message = new Message({
+      sender: senderId,
+      receiver: recipient.id,
+      content: encryptedContent,
+      senderSymmetricKey: senderEncryptedSymmetricKey,
+    });
+    await message.save();
+
+    // Check or update email status
+    if (!checkAndUpdateEmailSent(recipient.id)) {
+      const mailOptions = {
         from: process.env.EMAIL_USER,
         to: recipient.email,
         subject: 'Encrypted Symmetric Key for Your Session',
@@ -114,7 +112,7 @@ exports.sendMessage = async (req, res) => {
       markEmailAsSent(recipient.id);
     }
 
-    res.status(200).json({ message: 'Message sent and key emailed' });
+    res.status(200).json({ message: 'Message sent and key emailed if necessary' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -123,9 +121,9 @@ exports.sendMessage = async (req, res) => {
 
 exports.getMessages = async (req, res) => {
   try {
-    const recipientId = req.user.id;
-
-    // Fetch all messages for the recipient from the database
+    const userId = req.user.id;
+  
+    // Fetch all messages for the user as sender or receiver from the database
     const messages = await Message.find({
       $or: [
         { sender: userId },
@@ -137,14 +135,14 @@ exports.getMessages = async (req, res) => {
       return res.status(404).json({ error: 'No messages found' });
     }
 
-    // Retrieve the encrypted symmetric key from the email header
-    let encryptedSymmetricKey = req.headers['x-symmetric-key']; 
-    
+    // Retrieve the encrypted symmetric key from the headers
+    let encryptedSymmetricKey = req.headers['x-symmetric-key'];
+
     if (!encryptedSymmetricKey) {
       return res.status(400).json({ error: 'Symmetric key not found in headers' });
     }
-     
-    // Fetch user's private key 
+
+    // Fetch the user's private key
     const recipient = await User.findById(userId);
     const encryptedUserId = encrypt(recipient.id);
     const privateKeyDoc = await PrivateKey.findOne({ userId: encryptedUserId });
@@ -152,15 +150,14 @@ exports.getMessages = async (req, res) => {
     if (!privateKeyDoc) {
       throw new Error('Private key not found');
     }
-    
-    const PrivateKeyPEM = decrypt(PrivateKeyDoc.privateKey);
+
+    const privateKeyPEM = decrypt(privateKeyDoc.privateKey);
 
     // Process messages and decrypt content
     const decryptedMessages = [];
     for (const message of messages) {
       try {
         let keyToUse;
-
         // Determine which symmetric key to use
         if (message.sender.equals(userId)) {
           keyToUse = message.senderSymmetricKey;
@@ -192,8 +189,7 @@ exports.getMessages = async (req, res) => {
           recieverEmail:recieveremail.email,
           senderSymmetricKey: undefined,
           ReceiverSymmetricKey: undefined,
-        });
-
+        });        
       } catch (err) {
         console.error('Error decrypting message:', err);
       }

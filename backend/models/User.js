@@ -8,7 +8,6 @@ const userSchema = new mongoose.Schema({
   picture: String,
   password: String,
   contacts: [{ type: String }], // Store emails of contacts
-  emailSent:{type:Boolean,default:false}
 });
 
 userSchema.pre('save', async function (next) {

@@ -1,19 +1,21 @@
 const crypto = require('crypto');
 
-let key = undefined
+let key = new Map();
 
-const generateSymmetricKey = () => {
-  if(key===undefined){
-    key = crypto.randomBytes(32).toString('hex'); 
+const generateSymmetricKey = (userId) => { 
+  if (!key.has(userId)) {
+    key.set(userId, crypto.randomBytes(32).toString('hex'));
   }
-  console.log(key);
-  return key
-} 
+  return key.get(userId);
+};
 
-const encryptionKey = process.env.KEY_ENCRYPTION_KEY
-const ivHex = process.env.IVHEX
+function removeSymmetricKey(userId) {
+  key.delete(userId, true);
+}
 
-// Encrypt function
+const encryptionKey = process.env.KEY_ENCRYPTION_KEY;
+const ivHex = process.env.IVHEX;
+
 function encrypt(text) {
   const key = Buffer.from(encryptionKey, 'hex');
   const iv = Buffer.from(ivHex, 'hex');
@@ -23,7 +25,6 @@ function encrypt(text) {
   return encrypted;
 }
 
-// Decrypt function
 function decrypt(text) {
   const key = Buffer.from(encryptionKey, 'hex');
   const iv = Buffer.from(ivHex, 'hex');
@@ -50,28 +51,4 @@ function decrypMessage(encryptedText, key) {
   return decrypted;
 }
 
-// // Function to encrypt message using recipient's public key
-// function encryptMessage(message, publicKeyPEM) {
-//   const bufferMessage = Buffer.from(message, 'utf8');
-//   const encrypted = crypto.publicEncrypt({
-//     key: publicKeyPEM,
-//     padding: crypto.constants.RSA_PKCS1_PADDING,
-//     oaepHash: "sha256"  // Ensure correct padding
-//   }, bufferMessage);
-
-//   return encrypted.toString('base64');
-// }
-
-// // Function to decrypt message using recipient's private key
-// function decryptMessage(encryptedMessage, privateKeyPEM) {
-//   const bufferEncrypted = Buffer.from(encryptedMessage, 'base64');
-//   const decrypted = crypto.privateDecrypt({
-//     key: privateKeyPEM,
-//     padding: crypto.constants.RSA_PKCS1_PADDING ,
-//     oaepHash: "sha256"  // Ensure correct padding
-//   }, bufferEncrypted);
-
-//   return decrypted.toString('utf8');
-// }
-
-module.exports = { encrypt, decrypt , encryptMessage, decryptMessage, generateSymmetricKey };
+module.exports = { encrypt, decrypt, encryptMessage, decrypMessage, generateSymmetricKey,removeSymmetricKey };

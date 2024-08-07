@@ -36,7 +36,6 @@ const main = (io, sessionMiddleware) => {
           return acc;
         }, {})
       );
-      console.log(uniqueData);
 
       // Emit the list of online users to all connected clients
       io.emit('onlineUsers', uniqueData);
@@ -50,7 +49,7 @@ const main = (io, sessionMiddleware) => {
         } catch (err) {
           console.error('Error fetching user:', err);
         }
-
+        
         // Emit the updated list of online users to all connected clients
         io.emit('onlineUsers', Object.keys(onlineUsers));
       });

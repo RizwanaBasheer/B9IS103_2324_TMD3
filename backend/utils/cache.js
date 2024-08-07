@@ -12,4 +12,8 @@ function markEmailAsSent(userId) {
   emailSentCache.set(userId, true);
 }
 
-module.exports = { checkAndUpdateEmailSent, markEmailAsSent };
+function removeEmailAsSent(userId) {
+  emailSentCache.delete(userId, true);
+}
+
+module.exports = { checkAndUpdateEmailSent, markEmailAsSent,removeEmailAsSent };
