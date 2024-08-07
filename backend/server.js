@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const session = require('express-session');
-const MongoStore = require('connect-mongo'); // Ensure this is correct
+const MongoStore = require('connect-mongo');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
@@ -14,8 +14,8 @@ require('./config/passport'); // Google Auth
 const app = express();
 const server = http.createServer(app);
 const corsConfig = {
-  options: "*",
-  Credential: true,
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
 };
 
@@ -36,16 +36,15 @@ const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
   resave: true,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }), // Use connect-mongo for session storage
+  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
   cookie: {
-    secure: false, // Set to true if using HTTPS
+    secure: false,
     maxAge: 3600000, // 1 hour
   },
   genid: () => crypto.randomBytes(16).toString('hex'), // Custom session ID generator
 });
 
 // Middleware
-app.options("", cors(corsConfig));
 app.use(cors(corsConfig));
 app.use(express.json());
 app.use(sessionMiddleware);
@@ -79,5 +78,5 @@ server.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`)
 );
 
-// Correct export format for Vercel
+// Export app for Vercel
 module.exports = app;
