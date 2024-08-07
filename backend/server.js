@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const session = require('express-session');
-const MongoStore = require('connect-mongo'); // Add this line
+const MongoStore = require('connect-mongo'); // Ensure this is correct
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
@@ -79,4 +79,5 @@ server.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`)
 );
 
-module.exports = server; // Export server directly
+// Correct export format for Vercel
+module.exports = app;
