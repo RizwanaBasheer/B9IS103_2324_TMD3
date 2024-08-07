@@ -8,8 +8,8 @@ const socketIo = require('socket.io');
 const cors = require('cors');
 const crypto = require('crypto');
 require('dotenv').config();
-require('./utils/encryption'); // Initialize encryption
-require('./config/passport'); // Google Auth
+require('./utils/encryption');
+require('./config/passport');
 
 const app = express();
 const server = http.createServer(app);
@@ -39,9 +39,9 @@ const sessionMiddleware = session({
   store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
   cookie: {
     secure: false,
-    maxAge: 3600000, // 1 hour
+    maxAge: 3600000,
   },
-  genid: () => crypto.randomBytes(16).toString('hex'), // Custom session ID generator
+  genid: () => crypto.randomBytes(16).toString('hex'),
 });
 
 // Middleware
@@ -53,30 +53,60 @@ app.get('/', async (req, res) => {
   res.send('Hello, Vercel!');
 });
 
-// Middleware to ensure session is available for Socket.IO
 io.use((socket, next) => {
   sessionMiddleware(socket.request, socket.request.res || {}, next);
 });
 
-// Apply passport middlewares
-app.use(passport.initialize());
-app.use(passport.session());
+io.use((socket, next) => {
+  const token = socket.handshake.query.token;
+  if (!token) return next(new Error('Authentication error'));
 
-// Routes
-const authRoutes = require('./routes/authRoutes');
-const chatRoutes = require('./routes/chatRoutes');
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return next(new Error('Authentication error'));
+    socket.user = decoded;
+    next();
+  });
+});
 
-app.use('/auth', authRoutes);
-app.use('/chat', chatRoutes);
+io.on('connection', async (socket) => {
+  const userId = socket.user.id;
+  if (userId) {
+    try {
+      let user = await User.findById(userId);
+      onlineUsers.push({ id: userId, email: user.email });
+    } catch (err) {
+      console.error('Error fetching user:', err);
+    }
 
-// Socket.IO setup for real-time messaging
-require('./sockets/chatSocket').main(io, sessionMiddleware);
+    const uniqueData = Object.values(
+      onlineUsers.reduce((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      }, {})
+    );
 
-// Start server
+    io.emit('onlineUsers', uniqueData);
+
+    socket.on('disconnect', async () => {
+      console.log('User disconnected:', userId);
+
+      try {
+        let user = await User.findById(userId);
+        delete onlineUsers[user.email];
+      } catch (err) {
+        console.error('Error fetching user:', err);
+      }
+      
+      io.emit('onlineUsers', Object.keys(onlineUsers));
+    });
+  } else {
+    console.log('User ID not found');
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`)
 );
 
-// Export app for Vercel
 module.exports = app;

@@ -12,7 +12,9 @@ const OnlineUsersProvider = ({ children }) => {
     socket.current = io('https://e2e-chat-b9-is-103-2324-tmd-3.vercel.app', {
       query: {
         token: sessionStorage.getItem('token') || '',
-      }
+      },
+      transports: ['websocket', 'polling'], // Make sure to include transports
+
     });
 
     socket.current.on('onlineUsers', (onlineUsers) => {
