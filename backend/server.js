@@ -5,12 +5,14 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const http = require('http');
 const socketIo = require('socket.io');
+const path = require("path");
 const cors = require('cors');
 const crypto = require('crypto');
 require('dotenv').config();
 require('./utils/encryption'); // Initialize encryption
 require('./config/passport'); // Google Auth
 
+const _dirname = path.resolve();
 const app = express();
 const server = http.createServer(app);
 const corsConfig = {
@@ -71,6 +73,12 @@ app.use('/chat', chatRoutes);
 
 // Socket.IO setup for real-time messaging
 require('./sockets/chatSocket').main(io, sessionMiddleware);
+app.use(express.static(path.join(__dirname, "/frontend/build")));
+
+app.get("*", (req, res) => {
+	res.sendFile(path.join(__dirname, "frontend", "build", "index.html"));
+});
+
 
 // Start server
 const PORT = process.env.PORT || 5000;

@@ -9,7 +9,7 @@ const OnlineUsersProvider = ({ children }) => {
   console.log(process.env.REACT_APP_API_BASE_URL);
   
   useEffect(() => {
-    socket.current = io('https://e2e-chat-b9-is-103-2324-tmd-3.vercel.app', {
+    socket.current = io('http://localhost:5000', {
       query: {
         token: sessionStorage.getItem('token') || '',
       },
