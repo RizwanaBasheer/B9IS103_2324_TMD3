@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import ChatArea from './ChatArea';
 
-function ChatApp() {
+function ChatApp(props) {
   const [selectedContact, setSelectedContact] = useState('');
   const [showSidebar, setShowSidebar] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -42,7 +42,7 @@ function ChatApp() {
   return (
     <div className={`d-flex ${isMobile ? 'flex-column' : 'flex-md-row'}`} style={{ height: '100vh' }}>
       {showSidebar && (
-        <Sidebar onSelectContact={handleSelectContact} selectedContact={selectedContact} isMobile={isMobile} />
+        <Sidebar onSelectContact={handleSelectContact} selectedContact={selectedContact} isMobile={isMobile} apiUrl={props.apiUrl}/>
       )}
       <div className={`flex-fill ${isMobile && !showSidebar ? 'chat-area-fullscreen' : ''}`}>
         <ChatArea
@@ -50,6 +50,7 @@ function ChatApp() {
           isMobile={isMobile}
           onBack={handleBackToContacts}
           setSelectedContact={setSelectedContact}
+          apiUrl={props.apiUrl}
         />
       </div>
     </div>

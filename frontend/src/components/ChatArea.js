@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import EmojiPicker from './EmojiPicker';
-import io from 'socket.io-client';
 import axios from 'axios';
+import { OnlineUsersContext } from '../context/OnlineUsersContext';
 
-function ChatArea({ selectedContact, isMobile, onBack }) {
-    const socket = useRef();
+function ChatArea({ selectedContact, isMobile,onBack, setSelectedContact,apiUrl}) {
+    const onlineUsers = useContext(OnlineUsersContext)
     const [message, setMessage] = useState('');
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState([]); // Ensure messages is initialized as an empty array
     const [typing, setTyping] = useState(false);
-    const [online, setOnline] = useState(true); // Simulate online status
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [keyInput, setKeyInput] = useState(sessionStorage.getItem('key') || '');
+    const [keyInput, setKeyInput] = useState('');
     const messagesEndRef = useRef(null);
     const pollingInterval = useRef(null);
 
@@ -20,10 +19,6 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
     };
 
     useEffect(() => {
-        socket.current = io('http://localhost:5000', {
-            query: { token: sessionStorage.getItem('token') || '' } // Fetch token from sessionStorage or set it as needed
-        });
-
         if (selectedContact) {
             fetchMessages();
             startPolling();
@@ -34,23 +29,34 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
         };
     }, [selectedContact]);
 
+    const [contactMessages, setContactMessages] = useState({});
+
     const fetchMessages = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/chat/messages', {
+            const response = await axios.get(`${apiUrl}/chat/messages`, {
                 headers: {
                     "Authorization": `${sessionStorage.getItem('token')}`,
-                    "x-symmetric-key": keyInput
+                    "x-symmetric-key": sessionStorage.getItem(selectedContact.name)
                 }
             });
-            console.log(response.data);
-            setMessages(response.data.messages);
+    
+            const messagesForContact = response.data.messages.filter(msg => 
+                msg.senderEmail === selectedContact.email || msg.recieverEmail === selectedContact.email
+            );
+    
+            setContactMessages(prevState => ({
+                ...prevState,
+                [selectedContact.email]: messagesForContact
+            }));
+    
+            setMessages(messagesForContact);
         } catch (error) {
             console.error('Error fetching messages:', error);
         }
-    };
+    };    
 
     const startPolling = () => {
-        pollingInterval.current = setInterval(fetchMessages, 1000); // Poll every 3 seconds
+        pollingInterval.current = setInterval(fetchMessages, 3000); // Poll every 3 seconds
     };
 
     const stopPolling = () => {
@@ -59,19 +65,25 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
         }
     };
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (message.trim()) {
-            const newMessage = { user: 'Me', content: message };
+            const newMessage = { userPosition: 'sender', content: message };
             setMessages([...messages, newMessage]);
-            socket.current.emit('sendMessage', {
-                receiverEmail: selectedContact.email, // Adjust based on your data structure
-                content: message,
-            });
-            setMessage('');
-            setTyping(true);
-            setTimeout(() => {
-                setTyping(false);
-            }, 2000); // Simulate reply after 2 seconds
+
+            try {
+                await axios.post(`${apiUrl}/chat/send`, {
+                    receiverEmail: selectedContact.email,
+                    content: message,
+                }, {
+                    headers: {
+                        "Authorization": `${sessionStorage.getItem('token')}`,
+                    }
+                });
+
+                setMessage('');
+            } catch (error) {
+                console.error('Error sending message:', error);
+            }
         }
     };
 
@@ -96,13 +108,11 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
     }
 
     const handleKeySubmit = () => {
-        sessionStorage.setItem(selectedContact.name, keyInput);
+        sessionStorage.setItem(selectedContact.name, keyInput.trim());
         setDropdownOpen(false);
-        // Emit to update the receiver with the key
-        socket.current.emit('updateKey', { receiverEmail: selectedContact.email, key: keyInput });
     };
 
-
+    const online = onlineUsers.some(user => user.email === selectedContact?.email);
     const chatThemeColor = getRandomChatTheme();
 
     return (
@@ -168,13 +178,20 @@ function ChatArea({ selectedContact, isMobile, onBack }) {
             )}
             <div className="chat-messages flex-fill p-3 overflow-auto" style={{ borderTop: '1px solid #ddd' }}>
                 <ul className="list-unstyled">
-                    {messages.map((msg, index) => (
-                        <li key={index} className={`mb-2 ${msg.user === 'Me' ? 'text-end' : 'text-start'}`}>
-                            <div className={`d-inline-block p-2 rounded ${msg.user === 'Me' ? 'bg-primary text-white' : 'bg-light'}`} style={{ maxWidth: '70%' }}>
-                                {msg.content}
-                            </div>
+                    {messages.length > 0 ? (
+                        messages.map((msg, index) => (
+
+                            <li key={index} className={`mb-2 ${msg.userPosition === 'sender' ? 'text-end' : 'text-start'}`}>
+                                <div className={`d-inline-block p-2 rounded ${msg.userPosition === 'sender' ? 'bg-primary text-white' : 'bg-light'}`} style={{ maxWidth: '70%' }}>
+                                    {msg.content}
+                                </div>
+                            </li>
+                        ))
+                    ) : (
+                        <li className="mb-2 text-muted">
+                            No messages yet
                         </li>
-                    ))}
+                    )}
                     {typing && (
                         <li className="mb-2 text-muted">
                             <div className="d-inline-block p-2 rounded bg-light">

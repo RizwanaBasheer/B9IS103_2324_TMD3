@@ -2,7 +2,7 @@ import React from 'react';
 import { Typography } from '@mui/material';
 import GoogleAuth from './GoogleAuth';
 
-function Home() {
+function Home(props) {
   const containerStyle = {
     display: 'flex',
     flexDirection: 'column',
@@ -19,7 +19,7 @@ function Home() {
       <Typography variant="h3" gutterBottom>
         Chat App
       </Typography>
-      <GoogleAuth apiUrl={'http://localhost:5000'} />
+      <GoogleAuth apiUrl={props.apiUrl} />
     </div>
   );
 }

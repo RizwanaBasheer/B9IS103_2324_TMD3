@@ -3,7 +3,7 @@ import randomColor from 'randomcolor';
 import axios from 'axios';
 import ContactMakingPopup from './ContactMakingPopup';
 
-function Sidebar({ onSelectContact, selectedContact, isMobile }) {
+function Sidebar({ onSelectContact, selectedContact, isMobile, apiUrl }) {
   const socket = useRef();
   const [searchTerm, setSearchTerm] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -18,7 +18,7 @@ function Sidebar({ onSelectContact, selectedContact, isMobile }) {
     if (newContact.email === userData.email) {
       alert('You cannot select your own contact.');
     } else {
-      console.log(newContact);
+      // console.log(newContact);
       if (contactExists) {
         alert('Contact already exists.');
       } else {
@@ -31,7 +31,7 @@ function Sidebar({ onSelectContact, selectedContact, isMobile }) {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/auth/user', {
+        const response = await axios.get(`${apiUrl}/auth/user`, {
           headers: {
             "Authorization": `${sessionStorage.getItem('token')}`,
           }
@@ -73,7 +73,7 @@ function Sidebar({ onSelectContact, selectedContact, isMobile }) {
 
   const handleLogout = async () => {
     try {
-      await axios.get('http://localhost:5000/auth/logout', {
+      await axios.get(`${apiUrl}/auth/logout`, {
         headers: {
           Authorization: `${sessionStorage.getItem('token')}`
         }
@@ -115,35 +115,28 @@ function Sidebar({ onSelectContact, selectedContact, isMobile }) {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
-      <div className="ms-2">
-
-        <ContactMakingPopup
-          show={showPopup}
-          onClose={handleClosePopup}
-          onAddContact={handleAddContact}
-          userData={userData}
-          selectedContactEmail={selectedContact ? selectedContact.email : ''}
-        />
-      </div>
+      <ContactMakingPopup
+        show={showPopup}
+        onClose={handleClosePopup}
+        onAddContact={handleAddContact}
+      />
       <ul className="list-group">
         {filteredContacts.map((contact) => (
-          <>
-            <li
-              className={`list-group-item d-flex align-items-center ${selectedContact && selectedContact.id === contact.id ? 'active' : ''}`}
-              key={contact.id}
-              onClick={() => onSelectContact(contact)}
-            >
-              <div className="avatar me-2" style={{ backgroundColor: getRandomColor(), width: '40px', height: '40px', borderRadius: '50%' }}>
-                <span className="text-white d-flex justify-content-center align-items-center" style={{ width: '100%', height: '100%', fontSize: '1.2rem' }}>
-                  {contact.name[0]}
-                </span>
-              </div>
-              <span>{contact.name}</span>
-            </li>
-          </>
+          <li
+            className={`list-group-item d-flex align-items-center ${selectedContact && selectedContact.id === contact.id ? 'active' : ''}`}
+            key={contact.id}
+            onClick={() => onSelectContact(contact)}
+          >
+            <div className="avatar me-2" style={{ backgroundColor: getRandomColor(), width: '40px', height: '40px', borderRadius: '50%' }}>
+              <span className="text-white d-flex justify-content-center align-items-center" style={{ width: '100%', height: '100%', fontSize: '1.2rem' }}>
+                {contact.name[0]}
+              </span>
+            </div>
+            <span>{contact.name}</span>
+          </li>
         ))}
       </ul>
-      <button className="btn btn-primary ms-auto ms-2 mt-3 p-2 px-3 fw-bold" onClick={handleShowPopup}>+</button>
+      <button className="btn btn-primary ms-2 mt-3 p-2 px-3 fw-bold" onClick={handleShowPopup}>+</button>
     </div>
   );
 }

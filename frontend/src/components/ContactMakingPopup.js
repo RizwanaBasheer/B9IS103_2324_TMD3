@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { OnlineUsersContext } from '../context/OnlineUsersContext';
 
-const ContactMakingPopup = ({ show, onClose, onAddContact, selectedContactEmail }) => {
+const ContactMakingPopup = ({ show, onClose, onAddContact }) => {
   const [email, setEmail] = useState('');
   const onlineUsers = useContext(OnlineUsersContext);
   

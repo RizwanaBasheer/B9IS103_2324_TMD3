@@ -8,7 +8,6 @@ const GoogleAuth = (props) => {
 
     if (authToken) {
       // Store the token in local storage
-      console.log(authToken);
       sessionStorage.setItem('token', authToken);
       window.location.href = "/";
     } 

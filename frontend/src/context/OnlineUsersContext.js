@@ -8,15 +8,14 @@ const OnlineUsersProvider = ({ children }) => {
   const socket = useRef();
 
   useEffect(() => {
-    socket.current = io('http://localhost:5000', {
+    socket.current = io(process.env.REACT_APP_API_BASE_URL, {
       query: {
         token: sessionStorage.getItem('token') || '',
       }
     });
 
     socket.current.on('onlineUsers', (onlineUsers) => {
-      console.log(onlineUsers);
-      // sessionStorage.setItem('users',onlineUsers)
+
       
       if (Array.isArray(onlineUsers)) {
         setOnlineUsers(onlineUsers);
