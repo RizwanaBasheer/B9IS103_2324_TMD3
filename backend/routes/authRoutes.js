@@ -10,7 +10,7 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
 
 router.get('/user',authenticateJWT, authController.user);
 
-router.get('/logout', authController.logout);
+router.get('/logout',authenticateJWT, authController.logout);
 
 
 module.exports = router;
