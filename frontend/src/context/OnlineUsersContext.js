@@ -29,6 +29,8 @@ const OnlineUsersProvider = ({ children }) => {
 
     socket.current.on('onlineUsers', (onlineUsers) => {
       if (Array.isArray(onlineUsers)) {
+        console.log(onlineUsers);
+        
         setOnlineUsers(onlineUsers);
       } else {
         console.warn('Received non-array data for online users');
