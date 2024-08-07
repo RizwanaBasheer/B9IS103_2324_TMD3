@@ -5,41 +5,23 @@ const OnlineUsersContext = createContext();
 
 const OnlineUsersProvider = ({ children }) => {
   const [onlineUsers, setOnlineUsers] = useState([]);
-  const [error, setError] = useState(null);
   const socket = useRef();
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token') || '';
-    const url = process.env.REACT_APP_API_BASE_URL;
-
-    if (!url) {
-      console.error('REACT_APP_API_BASE_URL is not defined');
-      return;
-    }
-
-    socket.current = io(url, {
+    socket.current = io(process.env.REACT_APP_API_BASE_URL, {
       query: {
-        token,
-      },
-    });
-
-    socket.current.on('connect', () => {
-      console.log('Connected to WebSocket');
+        token: sessionStorage.getItem('token') || '',
+      }
     });
 
     socket.current.on('onlineUsers', (onlineUsers) => {
+
+      
       if (Array.isArray(onlineUsers)) {
         console.log(onlineUsers);
         
         setOnlineUsers(onlineUsers);
-      } else {
-        console.warn('Received non-array data for online users');
       }
-    });
-
-    socket.current.on('connect_error', (err) => {
-      console.error('WebSocket connection error:', err);
-      setError(err);
     });
 
     return () => {
@@ -48,7 +30,7 @@ const OnlineUsersProvider = ({ children }) => {
   }, []);
 
   return (
-    <OnlineUsersContext.Provider value={{ onlineUsers, error }}>
+    <OnlineUsersContext.Provider value={onlineUsers}>
       {children}
     </OnlineUsersContext.Provider>
   );
