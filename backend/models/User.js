@@ -3,7 +3,9 @@ const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   googleId: String,
+  name: String,
   email: String,
+  picture: String,
   password: String,
   contacts: [{ type: String }], // Store emails of contacts
   emailSent:{type:Boolean,default:false}

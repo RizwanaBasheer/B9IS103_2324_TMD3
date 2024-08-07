@@ -30,7 +30,9 @@ passport.use(new GoogleStrategy({
         if (!user) {
             user = new User({
                 googleId: profile.id,
-                email: profile.emails[0].value
+                name:profile._json.name,
+                email: profile.emails[0].value,
+                picture:profile._json.picture
             });
             await user.save();
 

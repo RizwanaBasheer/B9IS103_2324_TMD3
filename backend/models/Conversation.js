@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
 
 const conversationSchema = new mongoose.Schema(
 	{
@@ -15,10 +15,9 @@ const conversationSchema = new mongoose.Schema(
 				default: [],
 			},
 		],
-	},
-	{ timestamps: true }
-);
+		senderSymmetricKey: String, 
+		ReceiverSymmetricKey: String, 
+	});
 
 const Conversation = mongoose.model("Conversation", conversationSchema);
-
-export default Conversation;
+module.exports = Conversation;
