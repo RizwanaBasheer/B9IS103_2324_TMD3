@@ -1,5 +1,5 @@
 // controllers/chatController.js
-const { encrypt, decrypt, encryptMessage, decryptMessage , encryptMessageKey, decryptMessageKey, generateSymmetricKey} = require('../utils/encryption');
+const { encrypt, decrypt, encryptMessage, decryptMessage , generateSymmetricKey} = require('../utils/encryption');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const PublicKey = require('../models/PublicKey');
@@ -7,6 +7,7 @@ const PrivateKey = require('../models/PrivateKey');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 const { checkAndUpdateEmailSent, markEmailAsSent } = require('../utils/cache'); 
+const crypto = require('crypto');
 
 // Configure nodemailer
 const transporter = nodemailer.createTransport({
@@ -17,24 +18,35 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+const encryptMessageKey = (message, publicKeyPEM) => {
+  const bufferMessage = Buffer.from(message, 'utf8');
+  const encrypted = crypto.publicEncrypt({
+    key: publicKeyPEM,
+    padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+    oaepHash: "sha256"
+  }, bufferMessage);
+  return encrypted.toString('base64');
+};
+
+const decryptMessageKey = (encryptedMessage, privateKeyPEM) => {
+  const bufferEncrypted = Buffer.from(encryptedMessage, 'base64');
+  const decrypted = crypto.privateDecrypt({
+    key: privateKeyPEM,
+    padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+    oaepHash: "sha256"
+  }, bufferEncrypted);
+  return decrypted.toString('utf8');
+};
+
 exports.sendMessage = async (req, res) => {
   try {
     const { receiverEmail, content } = req.body;
-    const sender = req.user.id;
-
-    // const session = req.session;
-
-    //  // Initialize emailSent if it doesn't exist
-    //  if (emailSent === undefined) {
-    //   session.emailSent = false;
-    // }
+    const senderId = req.user.id;
 
     const recipient = await User.findOne({ email: receiverEmail });
-    if (!recipient) {
-      return res.status(404).json({ error: 'Recipient not found' });
-    }
-
-    const senderUser = await User.findById(sender);
+    if (!recipient) return res.status(404).json({ error: 'Recipient not found' });
+  
+    const senderUser = await User.findById(senderId);
     const recipientUser = await User.findOne({ email: receiverEmail });
 
     if (!senderUser.contacts.includes(receiverEmail)) {
@@ -47,27 +59,33 @@ exports.sendMessage = async (req, res) => {
       await recipientUser.save();
     }
 
-    const encryptedUserId = encrypt(recipient.id).toString();
-    
-    const publicKeyDoc = await PublicKey.findOne({ userId: encryptedUserId });
+    const symmetricKey = generateSymmetricKey();
+    console.log(symmetricKey);
 
-      if (!publicKeyDoc) {
-        return res.status(404).json({ error: 'Public Key not found' });
-      }
+    const encryptedRecieverId = encrypt(recipient.id.toString());
+    const publicKeyDoc = await PublicKey.findOne({ userId: encryptedRecieverId  });
+
+      if (!publicKeyDoc) return res.status(404).json({ error: 'Public Key not found' });
 
       const publicKeyPEM = publicKeyDoc.publicKey;
-      const symmetricKey = generateSymmetricKey();
       const encryptedContent = encryptMessage(content, symmetricKey);
       const encryptedSymmetricKey = encryptMessageKey(symmetricKey, publicKeyPEM);
+      const encryptedSenderId =  encrypt(senderId.toString());
+      const publicKeyDoc1 = await PublicKey.findOne({ userId: encryptedSenderId  });
     
+      if (!publicKeyDoc1) return res.status(404).json({ error: 'Public key not found' });
+      const publicKeyPEM1 = publicKeyDoc1.publicKey;
+      const senderEncryptedSymmetricKey = encryptMessageKey(symmetricKey, publicKeyPEM1);
+
       const message = new Message({
         sender: senderId,
         receiver: recipient.id,
         content: encryptedContent,
+        senderSymmetricKey: senderEncryptedSymmetricKey,
+        ReceiverSymmetricKey: encryptedSymmetricKey
       });
       await message.save();
 
-    
       // Update session data to track email sent status
       if (!checkAndUpdateEmailSent(recipient.id)) {
         const mailOptions = {
@@ -108,23 +126,27 @@ exports.getMessages = async (req, res) => {
     const recipientId = req.user.id;
 
     // Fetch all messages for the recipient from the database
-    const messages = await Message.find({ receiver: recipientId });
+    const messages = await Message.find({
+      $or: [
+        { sender: userId },
+        { receiver: userId }
+      ]
+    });
 
     if (!messages.length) {
       return res.status(404).json({ error: 'No messages found' });
     }
-    // Retrieve the encrypted symmetric key from the email header
 
-    let encryptedSymmetricKey = req.headers['x-symmetric-key']; // Assuming this is set as a header
+    // Retrieve the encrypted symmetric key from the email header
+    let encryptedSymmetricKey = req.headers['x-symmetric-key']; 
     
     if (!encryptedSymmetricKey) {
       return res.status(400).json({ error: 'Symmetric key not found in headers' });
     }
      
-    // Fetch recipient's private key 
-    const recipient = await User.findById(recipientId);
+    // Fetch user's private key 
+    const recipient = await User.findById(userId);
     const encryptedUserId = encrypt(recipient.id);
-
     const privateKeyDoc = await PrivateKey.findOne({ userId: encryptedUserId });
 
     if (!privateKeyDoc) {
