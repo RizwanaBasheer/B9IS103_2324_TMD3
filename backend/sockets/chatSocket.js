@@ -25,7 +25,7 @@ const main = (io, sessionMiddleware) => {
     if (userId) {
       try {
         let user = await User.findById(userId); // Fetch user details
-        onlineUsers.push({ id: userId, email: user.email })
+        onlineUsers.push({ id: userId, email: user.email });
       } catch (err) {
         console.error('Error fetching user:', err);
       }
@@ -49,7 +49,7 @@ const main = (io, sessionMiddleware) => {
         } catch (err) {
           console.error('Error fetching user:', err);
         }
-        
+
         // Emit the updated list of online users to all connected clients
         io.emit('onlineUsers', Object.keys(onlineUsers));
       });
