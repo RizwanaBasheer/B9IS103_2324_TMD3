@@ -9,7 +9,7 @@ function ChatApp(props) {
 
 
   const handleSelectContact = (contact) => {
-    console.log(sessionStorage.getItem(contact.name));
+    // console.log(sessionStorage.getItem(contact.name));
     if (sessionStorage.getItem(contact.name) === null) {
       
       sessionStorage.setItem(contact.name, '12345678')

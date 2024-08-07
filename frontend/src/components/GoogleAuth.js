@@ -16,7 +16,7 @@ const GoogleAuth = (props) => {
   const handleGoogleLogin = () => {
     // Redirect to the Google authentication endpoint on your backend
     window.location.href = `${props.apiUrl}/auth/google`;
-    console.log(props.GoogleAuth);
+    // console.log(props.GoogleAuth);
   };
 
   return (

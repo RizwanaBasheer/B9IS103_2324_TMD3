@@ -14,7 +14,7 @@ function Home(props) {
     color: '#fff'
   };
 
-  console.log(props.apiUrl);
+  // console.log(props.apiUrl);
   
 
   return (
