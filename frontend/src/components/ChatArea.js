@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import EmojiPicker from './EmojiPicker';
 import io from 'socket.io-client';
 import axios from 'axios';
