@@ -12,6 +12,13 @@ require('./config/passport'); // Google Auth
 
 const app = express();
 const server = http.createServer(app);
+const corsConfig = {
+  options:"*",
+  Credential:true,
+  methods:["GET","POST","PUT","DELETE"],
+};
+
+
 const io = socketIo(server, {
   cors: {
     origin: process.env.FRONTEND_URL, 
@@ -37,11 +44,15 @@ const sessionMiddleware = session({
 });
 
 // Middleware
-app.use(cors()); // Enable CORS for Express
+app.options("",cors(corsConfig));
+app.use(cors(corsConfig));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 app.use(sessionMiddleware);
+
+
+app.get('/', async(req, res) => {
+  res.send('Hello, Vercel!');
+});
 
 // Middleware to ensure session is available for Socket.IO
 io.use((socket, next) => {
