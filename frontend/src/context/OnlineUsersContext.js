@@ -9,7 +9,7 @@ const OnlineUsersProvider = ({ children }) => {
   console.log(process.env.REACT_APP_API_BASE_URL);
   
   useEffect(() => {
-    socket.current = io('http://localhost:5000', {
+    socket.current = io('https://b9is103-2324-tmd3-rnrf.onrender.com', {
       query: {
         token: sessionStorage.getItem('token') || '',
       },

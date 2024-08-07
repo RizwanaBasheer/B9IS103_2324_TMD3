@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const session = require('express-session');
+const MongoStore = require('connect-mongo'); // Add this line
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
@@ -12,11 +13,17 @@ require('./config/passport'); // Google Auth
 
 const app = express();
 const server = http.createServer(app);
+const corsConfig = {
+  options: "*",
+  Credential: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+};
+
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000", 
+    origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST"],
-    allowedHeaders: ["Authorization","x-symmetric-key"],
+    allowedHeaders: ["Authorization", "x-symmetric-key"],
   }
 });
 
@@ -27,8 +34,9 @@ mongoose.connect(process.env.MONGODB_URI)
 
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
-  resave: true, // Set to true to ensure the session is saved after every request
-  saveUninitialized: false, // Don't create sessions for requests that don't need them
+  resave: true,
+  saveUninitialized: false,
+  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }), // Use connect-mongo for session storage
   cookie: {
     secure: false, // Set to true if using HTTPS
     maxAge: 3600000, // 1 hour
@@ -37,11 +45,14 @@ const sessionMiddleware = session({
 });
 
 // Middleware
-app.use(cors()); // Enable CORS for Express
+app.options("", cors(corsConfig));
+app.use(cors(corsConfig));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 app.use(sessionMiddleware);
+
+app.get('/', async (req, res) => {
+  res.send('Hello, Vercel!');
+});
 
 // Middleware to ensure session is available for Socket.IO
 io.use((socket, next) => {
@@ -68,4 +79,4 @@ server.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`)
 );
 
-module.exports = { app, io };
+module.exports = server; // Export server directly
