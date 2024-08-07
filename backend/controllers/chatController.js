@@ -155,26 +155,49 @@ exports.getMessages = async (req, res) => {
     
     const PrivateKeyPEM = decrypt(PrivateKeyDoc.privateKey);
 
-    // Decrypt the symmetric key
-    const symmetricKey = decryptMessageKey(encryptedSymmetricKey, privateKeyPEM);
-  
-     // Decrypt each message content
-     const decryptedMessages = await Promise.all(messages.map(async (message) => {
-      let decryptedContent = ''
-      if(message.symmetricKey === undefined){
-        decryptedContent = decrypMessage(message.content, symmetricKey);
-        message.symmetricKey = encryptedSymmetricKey;
-        await message.save();
-      }
-      else{
-        decryptedContent = decrypMessage(message.content, decryptMessageKey(message.symmetricKey,privateKeyPEM));
-      }
+    // Process messages and decrypt content
+    const decryptedMessages = [];
+    for (const message of messages) {
+      try {
+        let keyToUse;
 
-      return {
-        ...message.toObject(),
-        content: decryptedContent,
-      };
-    }));
+        // Determine which symmetric key to use
+        if (message.sender.equals(userId)) {
+          keyToUse = message.senderSymmetricKey;
+        } else {
+          keyToUse = message.ReceiverSymmetricKey === undefined ? encryptedSymmetricKey : message.ReceiverSymmetricKey;
+        }
+
+        // Decrypt the symmetric key
+        const symmetricKey1 = await decryptMessageKey(keyToUse, privateKeyPEM);
+
+        // Decrypt the message content
+        const decryptedContent = await decrypMessage(message.content, symmetricKey1);
+
+        // Update ReceiverSymmetricKey if not already set
+        if (message.receiver.equals(userId) && decryptedContent && message.ReceiverSymmetricKey === undefined) {
+          message.ReceiverSymmetricKey = encryptedSymmetricKey;
+          await message.save();
+        }
+
+        let senderemail = await User.findOne({_id:message.sender})
+        let recieveremail = await User.findOne({_id:message.receiver})
+        
+        // Add the decrypted message to the result array
+        decryptedMessages.push({
+          ...message.toObject(),
+          content: decryptedContent,
+          userPosition:message.receiver.equals(userId) ? 'reciever':'sender',
+          senderEmail:senderemail.email,
+          recieverEmail:recieveremail.email,
+          senderSymmetricKey: undefined,
+          ReceiverSymmetricKey: undefined,
+        });
+
+      } catch (err) {
+        console.error('Error decrypting message:', err);
+      }
+    }
 
     res.status(200).json({ messages: decryptedMessages });
   } catch (error) {

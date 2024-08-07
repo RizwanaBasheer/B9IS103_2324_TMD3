@@ -4,9 +4,8 @@ const passport = require('passport');
 const session = require('express-session');
 const http = require('http');
 const socketIo = require('socket.io');
-const MongoStore = require('connect-mongo'); // Import MongoStore
-const cors = require('cors'); // Import CORS
-
+const cors = require('cors');
+const crypto = require('crypto');
 require('dotenv').config();
 require('./utils/encryption'); // Initialize encryption
 require('./config/passport'); // Google Auth
@@ -17,7 +16,7 @@ const io = socketIo(server, {
   cors: {
     origin: "http://localhost:3000", 
     methods: ["GET", "POST"],
-    allowedHeaders: ["Authorization"],
+    allowedHeaders: ["Authorization","x-symmetric-key"],
   }
 });
 
@@ -28,28 +27,32 @@ mongoose.connect(process.env.MONGODB_URI)
 
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    collectionName: 'sessions',
-  }),
-  cookie: { secure: true, maxAge: 3600000, emailSent:false } // 1 hour
-})
+  resave: true, // Set to true to ensure the session is saved after every request
+  saveUninitialized: false, // Don't create sessions for requests that don't need them
+  cookie: {
+    secure: false, // Set to true if using HTTPS
+    maxAge: 3600000, // 1 hour
+  },
+  genid: () => crypto.randomBytes(16).toString('hex'), // Custom session ID generator
+});
 
 // Middleware
 app.use(cors()); // Enable CORS for Express
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use(sessionMiddleware);
-app.use((req, res, next) => {
-  console.log('Session Middleware Execution:', req.session);
-  next();
+
+// Middleware to ensure session is available for Socket.IO
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, socket.request.res || {}, next);
 });
 
+// Apply passport middlewares
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Routes
 const authRoutes = require('./routes/authRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 
@@ -57,12 +60,12 @@ app.use('/auth', authRoutes);
 app.use('/chat', chatRoutes);
 
 // Socket.IO setup for real-time messaging
-require('./sockets/chatSocket')(io,sessionMiddleware);
+require('./sockets/chatSocket').main(io, sessionMiddleware);
 
 // Start server
-const PORT = process.env.PORT_SOCKETIO || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () =>
+  console.log(`Server running on http://localhost:${PORT}`)
+);
 
 module.exports = { app, io };
