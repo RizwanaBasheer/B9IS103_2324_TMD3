@@ -6,7 +6,8 @@ const OnlineUsersContext = createContext();
 const OnlineUsersProvider = ({ children }) => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const socket = useRef();
-
+  console.log(process.env.REACT_APP_API_BASE_URL);
+  
   useEffect(() => {
     socket.current = io(process.env.REACT_APP_API_BASE_URL, {
       query: {
