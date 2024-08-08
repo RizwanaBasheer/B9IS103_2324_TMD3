@@ -12,12 +12,12 @@
 
 ## To Deploy Locally :
 
-1.Download the file in a zip format , Extract the files and open in VS code.
-2.Install node modules in both the frontend and backend Folders.
-3.Create the account in Atlas MongoDB , create the database.
-4.Create your Own env file and give the paths for the Google auth, MongoDB.
-4.Command to run the Frontend : npm start
-5.Command to run the Backend : nodemon server.js
+1.Download the file in a zip format , Extract the files and open in VS code.  
+2.Install node modules in both the frontend and backend Folders.  
+3.Create the account in Atlas MongoDB , create the database.  
+4.Create your Own env file and give the paths for the Google auth, MongoDB.  
+4.Command to run the Frontend : npm start  
+5.Command to run the Backend : nodemon server.js  
 
 ## Reference Links :
 
